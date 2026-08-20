@@ -9,7 +9,8 @@
 | Fase | Etapa do ciclo BPM | Marco | Estado |
 |---|---|---|---|
 | **Fase 0** | Planeamento e Estratégia + Análise + Desenho | M0 | **Em curso** |
-| **Fase 1** | Análise (validação) | M1, M2 | Por iniciar |
+| ~~**Fase 1**~~ | ~~Análise (validação)~~ | ~~M1, M2~~ | **Reformulada pela emenda E-01** — ver Fase 1-P |
+| **Fase 1-P** | Desenho executável (Modo Produto) | M2, M3 | **Em curso** |
 | **Fase 2** | Implementação — fatia vertical | M3 | Por iniciar |
 | **Fase 3** | Implementação — Escopo 1 completo | M4, M5, M6 | Por iniciar |
 | **Fase 4** | Escopo 2 — manutenção e movimentação | — | Planeado |
@@ -41,25 +42,40 @@
 
 **Saída de fase:** M0 — aprovação do conjunto conceptual pelo Dono do Processo, Compliance (KYC e BC/FT) e Arquitecto.
 
-## Fase 1 — Validação e congelamento
+## ~~Fase 1 — Validação e congelamento~~ → reformulada
 
-**Objectivo:** substituir hipóteses por factos. Nenhuma linha de lógica de negócio antes disto.
+**Estado: não executável no Modo Produto.** As actividades `1.1` a `1.3` e `1.6` a `1.7` exigem uma instituição de acolhimento, que não existe (emenda E-01 do Termo de Abertura).
 
-| # | Actividade | Saída | Duração |
-|---|---|---|---|
-| 1.1 | Nomear Dono do Processo | Nomeação formal | Pré-requisito |
-| 1.2 | Executar o protocolo de validação do AS-IS (6 técnicas) | AS-IS validado; valores `†` substituídos | 3 semanas |
-| 1.3 | Oficinas de desenho TO-BE com quem executa | TO-BE ajustado | 2 semanas |
-| 1.4 | Recolher minutas de Condições Gerais e verificar os 13 temas | Minuta conforme, versionada | 2 semanas |
-| 1.5 | Selecionar fornecedor de verificação de identidade (prova de conceito com documentos angolanos) | Fornecedor selecionado com métricas de fiabilidade | 4 semanas |
-| 1.6 | Especificar contrato de integração com o core bancário | Contrato acordado com a Direcção de Sistemas | 3 semanas |
-| 1.7 | Constituir o registo de instituições que aplicam diligência | Registo inicial com critério de aferição | 2 semanas |
-| 1.8 | Modelar BPMN e DMN executáveis | Modelos validados por Compliance | 3 semanas |
-| 1.9 | Parametrizar risco, diligência e limiares | Tabelas DMN preenchidas e aprovadas | 2 semanas |
+O conteúdo desta fase **não é descartado**: passa a ser pré-requisito de instalação em cada instituição, e está preservado como tal.
 
-**Saída de fase:** M1 (AS-IS validado) e M2 (TO-BE congelado).
+| Actividade original | Destino |
+|---|---|
+| 1.1 Nomear Dono do Processo | Cláusula do compromisso de instalação |
+| 1.2 Validar o AS-IS (protocolo de 6 técnicas) | Pré-requisito de instalação, por instituição |
+| 1.3 Oficinas de TO-BE com quem executa | Pré-requisito de instalação, por instituição |
+| 1.4 Minutas de Condições Gerais | Fase 1-P, com minuta de referência construída a partir dos 13 temas do Art. 5.º n.º 2 |
+| 1.5 Fornecedor de verificação de identidade | Fase 1-P, com implementação simulada primeiro e prova de conceito real depois |
+| 1.6 Contrato de integração com o core | Fase 1-P, com adaptador simulado e contrato de referência publicado |
+| 1.7 Registo de instituições que aplicam diligência | Pré-requisito de instalação, por instituição |
+| 1.8 Modelar BPMN e DMN executáveis | **Fase 1-P, agora** |
+| 1.9 Parametrizar risco e diligência | **Fase 1-P, agora** |
 
-**Porta de qualidade:** o TO-BE não congela sem assinatura do Dono do Processo, do Chefe de Compliance KYC e do Chefe de Compliance BC/FT.
+## Fase 1-P — Desenho executável (Modo Produto)
+
+**Objectivo:** produzir os modelos executáveis e o que os torna demonstráveis, para que exista algo a mostrar a uma instituição.
+
+| # | Actividade | Estado |
+|---|---|---|
+| 1P.1 | Modelo BPMN executável do processo de abertura de conta | Em curso |
+| 1P.2 | As 9 decisões DMN, com os limiares do Aviso parametrizados | Em curso |
+| 1P.3 | Formulários das tarefas de utilizador | Por iniciar |
+| 1P.4 | Minuta de referência de Condições Gerais, cobrindo os 13 temas | Por iniciar |
+| 1P.5 | Contrato de referência de integração com o core, e adaptador simulado | Por iniciar |
+| 1P.6 | Implementação simulada da verificação de identidade, com a mesma interface do fornecedor real | Por iniciar |
+
+**Saída de fase:** modelos executáveis que arrancam uma instância e a levam até estado terminal.
+
+**Porta de qualidade:** o AS-IS mantém-se marcado como não validado em todo lugar onde é citado. Nenhum número de estimativa é apresentado como medição.
 
 ## Fase 2 — Fatia vertical
 
@@ -82,6 +98,7 @@
 | 2.11 | App Android — percurso completo do fluxo base |
 | 2.12 | Testes de processo cobrindo todos os ramos do fluxo base |
 | 2.13 | Testes dos invariantes `INV-01` a `INV-10` |
+| 2.14 | `tools/trace-check` — implementado **agora e não antes**, porque só tem o que verificar quando existir código e testes a verificar |
 
 **Saída de fase:** M3 — fluxo base a correr ponta-a-ponta em ambiente de integração, com os 10 invariantes verificados.
 
@@ -139,16 +156,18 @@
 
 ## Sequenciamento e caminho crítico
 
+Reformulado pela emenda E-01. O caminho já não passa por uma instituição.
+
 ```
-   [1.1 Dono do Processo]  ─────────────┐
-                                        ▼
-   [1.2 Validar AS-IS] ──► [1.3 TO-BE] ──► [1.8 BPMN/DMN] ──► [Fase 2] ──► [Fase 3]
-                                        ▲          ▲
-   [1.5 Fornecedor identidade] ─────────┘          │
-   [1.4 Minutas jurídicas] ────────────────────────┤
-   [1.6 Contrato core] ────────────────────────────┘
+   [1P.1 BPMN executável] ──► [1P.2 DMN] ──► [Fase 2 fatia vertical] ──► [Apresentação a 3 interlocutores]
+                                    ▲                    ▲
+   [1P.6 Identidade simulada] ──────┘                    │
+   [1P.5 Adaptador de core simulado] ───────────────────┬─┘
+   [1P.4 Minuta de referência das Condições Gerais] ────┘
 ```
 
-**Caminho crítico:** `1.1 → 1.2 → 1.3 → 1.8 → Fase 2 → Fase 3`.
+**Caminho crítico:** `1P.1 → 1P.2 → Fase 2 → apresentação`.
 
-**Dependências que podem deslocar o caminho crítico:** `1.5` (fornecedor de identidade), `1.4` (minutas) e `1.6` (core). São as três premissas de risco alto — `A2`, `A3` e `A4` — e devem arrancar em paralelo com `1.2`, não depois.
+**O que mudou de natureza:** as três dependências que antes eram de risco alto — API do core, fornecedor de identidade, minutas jurídicas — deixam de bloquear, porque passam a ter implementação simulada atrás de uma interface estável. O risco não desaparece: desloca-se para o momento da substituição do simulado pelo real, e é aí que `A2`, `A3` e `A4` voltam a ser testadas.
+
+**O que passou a ser o verdadeiro portão:** a apresentação a interlocutores. Sem interesse de nenhuma instituição, o problema pode estar mal caracterizado — e essa é informação sobre o diagnóstico, não uma falha de venda. Registado como `S5`.

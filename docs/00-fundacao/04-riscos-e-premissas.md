@@ -22,14 +22,15 @@
 
 | ID | Risco | P | I | Exp. | Resposta | Dono |
 |---|---|---|---|---|---|---|
-| `R-09` | Dono do Processo não é nomeado, ou é nomeado sem autoridade transversal | 4 | 5 | **20** | **Escalar** — pré-requisito de arranque da Fase 1; critério de insucesso `S1` do Termo de Abertura | Patrocinador |
-| `R-10` | Nenhum fornecedor de verificação de identidade atinge fiabilidade utilizável com documentos angolanos | 3 | 5 | **15** | **Mitigar** — prova de conceito com amostra real na Fase 1 (`1.5`); alternativa de revisão manual assistida; critério de insucesso `S2` | Arquitecto |
-| `R-11` | Core bancário não expõe API de criação e activação de conta | 3 | 4 | 12 | **Mitigar** — adaptador com estratégias alternativas (API, ficheiro, fila); contrato de integração especificado na Fase 1 (`1.6`) | Sistemas |
-| `R-12` | AS-IS não é validado e o TO-BE resolve problemas hipotéticos | 3 | 4 | 12 | **Mitigar** — porta de qualidade M1 obrigatória antes de M2; valores `†` bloqueiam o congelamento | Analista BPM |
+| ~~`R-09`~~ | ~~Dono do Processo não é nomeado~~ | — | — | — | **Materializado e reclassificado** pela emenda E-01. Não existe instituição, logo não existe Dono a nomear. Passa a cláusula do compromisso de instalação; ver `R-29` | — |
+| `R-10` | Nenhum fornecedor de verificação de identidade atinge fiabilidade utilizável com documentos angolanos | 3 | 4 | 12 | **Mitigar e diferir** — impacto reduzido pela emenda E-01: a fatia vertical usa implementação simulada atrás de interface estável, pelo que o risco deixa de bloquear a construção e passa a incidir sobre a substituição. Prova de conceito com amostra real antes da primeira instalação; critério de insucesso `S2` | Arquitecto |
+| `R-11` | Core bancário não expõe API de criação e activação de conta | 3 | 3 | 9 | **Mitigar e diferir** — adaptador simulado atrás de contrato de referência publicado (`1P.5`); a estratégia alternativa por ficheiro ou fila é escolhida por instituição na instalação | Arquitecto |
+| `R-12` | AS-IS não é validado e o TO-BE resolve problemas hipotéticos | 4 | 4 | **16** | **Aceite com controlo** — probabilidade subiu com a emenda E-01, porque a validação deixou de ser possível antes do desenho. Controlos: AS-IS marcado como não validado em todo lugar onde é citado; estimativas nunca apresentadas como medições; protocolo de validação preservado como pré-requisito de instalação; parametrização por instituição como mecanismo de absorção da divergência | Arquitecto |
 | `R-13` | Alargamento de escopo — pressão para incluir movimentação, extractos ou crédito no Escopo 1 | 4 | 3 | 12 | **Mitigar** — escopo explícito no Termo de Abertura; alterações só por decisão do Patrocinador com replaneamento | Gestor de Projecto |
 | `R-14` | Minutas contratuais não são fornecidas no prazo, bloqueando a Fase E | 3 | 4 | 12 | **Mitigar** — arranque de `1.4` em paralelo com `1.2`; minuta provisória para desenvolvimento, marcada como não válida para produção | Jurídico |
 | `R-15` | Fase conceptual é vista como documentação a saltar para "começar a programar" | 3 | 4 | 12 | **Mitigar** — a matriz de rastreabilidade é a especificação; sem `REG-*` não há teste, e sem teste não há passagem a produção | Gestor de Projecto |
-| `R-16` | Registo de instituições que aplicam diligência não é constituído | 3 | 3 | 9 | **Mitigar** — `1.7` na Fase 1; critério de aferição documentado; sem registo, `REG-FUN-02` não é verificável | Compliance BC/FT |
+| `R-16` | Registo de instituições que aplicam diligência não é constituído | 3 | 3 | 9 | **Diferir** — passa a pré-requisito de instalação, por instituição; sem registo, `REG-FUN-02` não é verificável | Compliance BC/FT |
+| `R-29` | Produto construído sem cliente resolve um problema mal caracterizado, ou bem caracterizado mas que ninguém quer resolver agora | 3 | 5 | **15** | **Mitigar por validação comercial** — apresentar a três interlocutores antes de investir na segunda fatia. A mitigação não é técnica: é tratar a ausência de interesse como informação sobre o diagnóstico, e não como falha de venda. Critério de insucesso `S5` | Gestor de Projecto |
 
 ## Riscos técnicos
 
@@ -55,13 +56,19 @@
 
 ## Riscos críticos — resumo
 
+Actualizado pela emenda E-01.
+
 | ID | Risco | Exp. | Dono |
 |---|---|---|---|
-| `R-09` | Dono do Processo não nomeado ou sem autoridade | 20 | Patrocinador |
 | `R-20` | Regras de negócio migram para código | 16 | Arquitecto |
+| `R-12` | AS-IS não validado — probabilidade subiu no Modo Produto | 16 | Arquitecto |
 | `R-01` | Interpretação do BNA sobre verificação remota | 15 | Compliance KYC |
 | `R-02` | Falso negativo na triagem PEP | 15 | Compliance BC/FT |
-| `R-10` | Fornecedor de identidade inviável para documentos angolanos | 15 | Arquitecto |
 | `R-22` | Exposição de dados pessoais e biométricos | 15 | Segurança |
+| `R-29` | Produto sem cliente resolve o problema errado | 15 | Gestor de Projecto |
+
+**Saíram da lista:** `R-09` materializou-se e foi reclassificado; `R-10` desceu a 12 por a construção deixar de depender do fornecedor real.
+
+**Entraram:** `R-29`, criado pela emenda; `R-12` subiu de 12 para 16, e é agora o risco que melhor descreve a fragilidade do modo actual.
 
 **Governação.** Registo revisto quinzenalmente pelo Gestor de Projecto durante as Fases 1 a 3, e mensalmente depois. Risco crítico exige plano de resposta escrito com prazo e revisão semanal até descer de 15.

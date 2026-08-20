@@ -70,11 +70,12 @@ A análise AS-IS (`docs/02-bpm/03-as-is-abertura-de-conta.md`) quantifica o prob
 
 | # | Premissa | Consequência se falsa |
 |---|---|---|
-| A1 | A instituição de acolhimento nomeia Dono do Processo com autoridade efectiva | Sem decisor, o desenho paralisa em impasses funcionais |
+| ~~A1~~ | ~~A instituição de acolhimento nomeia Dono do Processo com autoridade efectiva~~ | **FALSIFICADA em 20/08/2026** — não existe instituição de acolhimento. Ver emenda E-01 |
 | A2 | O core bancário expõe, ou pode passar a expor, API de criação e activação de conta | Necessário adaptador com integração por ficheiro; degrada o alvo de tempo de ciclo |
 | A3 | Existem fornecedores de verificação de identidade utilizáveis com documentos de identificação angolanos | Verificação remota degrada para revisão manual; O2 e O3 ficam em risco |
 | A4 | A Direcção Jurídica fornece minutas de Condições Gerais que cobrem os 13 temas | Bloqueia a Fase E; é dependência crítica |
-| A5 | O AS-IS de referência é validado na instituição antes do congelamento do TO-BE | O TO-BE resolve problemas hipotéticos |
+| ~~A5~~ | ~~O AS-IS de referência é validado na instituição antes do congelamento do TO-BE~~ | **FALSIFICADA em 20/08/2026** — sem instituição, não há agência para observar. Substituída por A8. Ver emenda E-01 |
+| A8 | O AS-IS de referência do sector é base suficiente para desenhar um produto, sendo a validação feita por instituição no momento da instalação | Se um AS-IS real divergir substancialmente do de referência, o produto exige adaptação e não apenas parametrização |
 | A6 | Existe registo, ou é possível constituí-lo, das instituições que comprovadamente aplicam diligência | `REG-FUN-02` fica sem base de verificação |
 | A7 | A conservação por processo tecnológico é aceite pelo BNA nos termos do Anexo I, secção II | Obriga a arquivo físico paralelo |
 
@@ -109,14 +110,29 @@ Ver `02-stakeholders-raci.md`.
 
 ## 9. Critérios de sucesso do projecto
 
-O projecto é considerado bem-sucedido quando, cumulativamente:
+Divididos em dois conjuntos pela emenda E-01, porque os critérios originais pressupunham uma instituição em produção e, sem ela, seriam permanentemente inalcançáveis.
 
-1. `KPC-01` a `KPC-11` registam 100% durante três meses consecutivos em produção.
-2. `KPI-01` para pessoa singular de risco baixo em canal remoto é inferior a 15 minutos no percentil 95.
-3. `KPI-04` (STP) excede 60% no universo de risco baixo.
-4. `KPI-08` (recuperação de dossiê) é inferior a 5 minutos no percentil 95.
-5. Uma auditoria interna independente confirma a rastreabilidade integral da matriz `REG-*` sem constatação crítica.
-6. A instalação numa segunda instituição não exige alteração de código — apenas parametrização.
+### Conjunto A — verificáveis sem instituição de acolhimento
+
+| # | Critério | Como se verifica |
+|---|---|---|
+| A1 | Os invariantes `INV-01` a `INV-10` são verificados por teste automatizado, e cada um falha quando o controlo é removido | Suite de testes |
+| A2 | Todo requisito `REG-*` de escopo MVP tem regra, elemento de processo, módulo e teste nomeado, verificado automaticamente | `tools/trace-check` no *build* |
+| A3 | O processo corre ponta-a-ponta em ambiente local, para pessoa singular residente de risco baixo, sem intervenção humana | Instância concluída em Camunda |
+| A4 | `KPI-01` inferior a 15 minutos medido em ambiente controlado, com verificação de identidade simulada | Medição sobre 30 instâncias sintéticas |
+| A5 | A instalação de uma segunda instituição exige apenas parametrização, sem alteração de código | Segundo `tenantId` configurado do zero |
+| A6 | Um profissional de Compliance consegue ler e aprovar as regras sem assistência técnica | Revisão das tabelas de decisão por terceiro |
+
+### Conjunto B — exigem instituição em produção
+
+Mantidos como alvo, reconhecidamente indisponíveis no modo actual:
+
+| # | Critério |
+|---|---|
+| B1 | `KPC-01` a `KPC-11` a 100% durante três meses consecutivos em produção |
+| B2 | `KPI-04` (processamento sem intervenção humana) acima de 60% em volume real |
+| B3 | `KPI-08` (recuperação de dossiê) abaixo de 5 minutos no percentil 95, com arquivo real |
+| B4 | Auditoria interna independente confirma a rastreabilidade sem constatação crítica |
 
 ## 10. Critérios de insucesso — quando parar
 
@@ -124,7 +140,42 @@ Explicitados deliberadamente, para que a decisão de parar seja tomada por crit�
 
 | # | Condição | Acção |
 |---|---|---|
-| S1 | Não é possível nomear Dono do Processo com autoridade após dois ciclos de escalonamento | Suspender; sem Dono não há BPM |
+| ~~S1~~ | ~~Não é possível nomear Dono do Processo com autoridade após dois ciclos de escalonamento~~ | Substituído por S5 pela emenda E-01 |
+| S5 | A fatia vertical conclui e, mesmo assim, nenhuma instituição manifesta interesse após apresentação a três interlocutores | Reavaliar: o problema pode ser real e a proposta não ser a certa, ou o canal comercial ser inadequado |
 | S2 | Nenhum fornecedor de verificação de identidade atinge fiabilidade utilizável com documentos angolanos | Redesenhar o Escopo 1 para canal presencial digitalizado; renegociar O1 |
 | S3 | O core bancário não permite integração programática nem por ficheiro em prazo aceitável | Renegociar escopo e alvos de tempo de ciclo |
 | S4 | O BNA comunica não aceitar conservação exclusivamente por processo tecnológico | Adicionar arquivo físico paralelo; recalcular caso de negócio |
+
+---
+
+## 11. Emenda E-01 — Modo Produto
+
+**Data:** 20 de Agosto de 2026. **Motivo:** confirmação de que não existe instituição de acolhimento.
+
+### O que mudou
+
+As premissas `A1` e `A5` estão falsificadas. Não há Dono do Processo para nomear nem agência para observar. Isto invalida a Fase 1 tal como estava desenhada, e invalidaria também os critérios de sucesso originais, todos dependentes de produção.
+
+### A decisão
+
+O projecto passa a executar em **Modo Produto**: constrói-se uma implementação de referência sobre o AS-IS do sector, e a validação por instituição desloca-se para o momento da instalação.
+
+Esta é uma reformulação do portão de qualidade, não a sua supressão. A distinção importa e fica registada:
+
+| Suprimir o portão seria | Reformulá-lo é |
+|---|---|
+| Avançar para implementação sem dizer que o AS-IS não foi validado | Marcar o AS-IS como não validado em todo lugar onde é citado, e manter o protocolo de validação como pré-requisito de cada instalação |
+| Apresentar as estimativas como medições | Manter a marca de estimativa em todos os tempos |
+| Retirar a exigência de Dono do Processo | Manter a exigência, deslocada para o contrato de instalação |
+
+### Consequências operacionais
+
+1. **A validação do AS-IS passa a ser pré-requisito de instalação**, não de desenho. Nenhuma instituição entra em produção sem executar o protocolo de 6 técnicas na sua realidade.
+2. **A nomeação do Dono do Processo passa a ser cláusula do compromisso de instalação.** Continua a ser condição — muda apenas o momento em que é exigida.
+3. **O TO-BE passa a ser hipótese de produto**, não desenho validado. Está desenhado a partir da norma, que é a mesma para todas as instituições, e a partir de um AS-IS de referência, que pode divergir.
+4. **A parametrização por instituição deixa de ser conveniência e passa a ser o mecanismo de adaptação.** É o que absorve a divergência entre o AS-IS de referência e o AS-IS real de cada banco. Reforça a prioridade de `ADR-0008`.
+5. **A fatia vertical deixa de ser apenas prova técnica** e passa a ser também o argumento comercial. É o que se mostra a um banco.
+
+### Risco que esta emenda cria
+
+Registado como `R-29` no registo de riscos: construir sobre um AS-IS não validado pode produzir um produto que resolve um problema mal caracterizado. A mitigação não é técnica — é comercial: apresentar a três interlocutores antes de investir na segunda fatia, e tratar a ausência de interesse como informação sobre o diagnóstico, não como falha de venda.
