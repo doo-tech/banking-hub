@@ -1,0 +1,40 @@
+# Banking Hub — imagem do backend.
+# Construcao em duas fases: compila com Maven, executa sobre JRE minimo.
+
+FROM maven:3.9-eclipse-temurin-21 AS build
+WORKDIR /build
+
+# Camada de dependencias — reaproveitada enquanto os POM nao mudarem.
+COPY pom.xml .
+COPY bh-bom/pom.xml bh-bom/
+COPY bh-common/pom.xml bh-common/
+COPY bh-tenant/pom.xml bh-tenant/
+COPY bh-customer/pom.xml bh-customer/
+COPY bh-document/pom.xml bh-document/
+COPY bh-kyc/pom.xml bh-kyc/
+COPY bh-contract/pom.xml bh-contract/
+COPY bh-funding/pom.xml bh-funding/
+COPY bh-account/pom.xml bh-account/
+COPY bh-archive/pom.xml bh-archive/
+COPY bh-audit/pom.xml bh-audit/
+COPY bh-notification/pom.xml bh-notification/
+COPY bh-orchestration/pom.xml bh-orchestration/
+COPY bh-onboarding-bff/pom.xml bh-onboarding-bff/
+COPY bh-app/pom.xml bh-app/
+RUN mvn -B -q dependency:go-offline || true
+
+COPY . .
+RUN mvn -B -DskipTests package
+
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+
+# Utilizador sem privilegios — principio do menor privilegio.
+RUN addgroup -S bankinghub && adduser -S bankinghub -G bankinghub
+USER bankinghub
+
+COPY --from=build /build/bh-app/target/bh-app-*.jar app.jar
+
+EXPOSE 8080
+ENV JAVA_OPTS="-XX:MaxRAMPercentage=75"
+ENTRYPOINT ["sh","-c","exec java $JAVA_OPTS -jar app.jar"]
