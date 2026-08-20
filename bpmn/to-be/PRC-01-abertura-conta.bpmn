@@ -1,0 +1,1137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_PRC01" targetNamespace="http://bankinghub.ao/bpmn" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0">
+  <bpmn:message id="Message_IniciarPedido" name="iniciarPedidoAbertura" />
+  <bpmn:message id="Message_FundosRecebidos" name="entregaInicialFundosRecebida">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=pedidoId" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:error id="Error_MinutaNaoConforme" name="ERRO_MINUTA_NAO_CONFORME" errorCode="ERRO_MINUTA_NAO_CONFORME" />
+  <bpmn:process id="PRC-01-abertura-conta" name="PRC-01 Abertura de Conta de Deposito" isExecutable="true">
+    <bpmn:startEvent id="StartPedido" name="Pedido de abertura iniciado">
+      <bpmn:outgoing>Flow_001</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MED_Start" messageRef="Message_IniciarPedido" />
+    </bpmn:startEvent>
+    <bpmn:userTask id="Consentimento" name="Consentir tratamento de dados pessoais">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="form-consentimento" />
+        <zeebe:assignmentDefinition candidateGroups="CLIENTE" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_001</bpmn:incoming>
+      <bpmn:outgoing>Flow_002</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="DeclararPerfil" name="Declarar perfil, residencia e moeda">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="form-declarar-perfil" />
+        <zeebe:assignmentDefinition candidateGroups="CLIENTE" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_002</bpmn:incoming>
+      <bpmn:outgoing>Flow_003</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:businessRuleTask id="AvaliarElegibilidade" name="Avaliar elegibilidade">
+      <bpmn:extensionElements>
+        <zeebe:calledDecision decisionId="elegibilidade" resultVariable="elegibilidade" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_003</bpmn:incoming>
+      <bpmn:outgoing>Flow_004</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:exclusiveGateway id="GwElegivel" name="Elegivel?" default="Flow_006">
+      <bpmn:incoming>Flow_004</bpmn:incoming>
+      <bpmn:outgoing>Flow_005</bpmn:outgoing>
+      <bpmn:outgoing>Flow_006</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="NaoElegivel" name="Nao elegivel">
+      <bpmn:incoming>Flow_005</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:businessRuleTask id="GerarChecklist" name="Gerar checklist documental">
+      <bpmn:extensionElements>
+        <zeebe:calledDecision decisionId="requisitos_documentais" resultVariable="checklist" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_006</bpmn:incoming>
+      <bpmn:outgoing>Flow_007</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:userTask id="CapturarDocumento" name="Capturar documento de identificacao">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="form-capturar-documento" />
+        <zeebe:assignmentDefinition candidateGroups="CLIENTE" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_007</bpmn:incoming>
+      <bpmn:outgoing>Flow_008</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="ExtrairDadosDocumento" name="Extrair dados do documento">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="kyc.extrairDadosDocumento" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_008</bpmn:incoming>
+      <bpmn:outgoing>Flow_009</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="ValidarDocumento" name="Validar autenticidade e validade">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="kyc.validarDocumento" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_009</bpmn:incoming>
+      <bpmn:outgoing>Flow_010</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="CapturarSelfie" name="Capturar selfie com prova de vida">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="form-capturar-selfie" />
+        <zeebe:assignmentDefinition candidateGroups="CLIENTE" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_010</bpmn:incoming>
+      <bpmn:outgoing>Flow_011</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="CorrespondenciaFacial" name="Verificar correspondencia facial">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="kyc.verificarCorrespondenciaFacial" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_011</bpmn:incoming>
+      <bpmn:outgoing>Flow_012</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GwIdentidade" name="Identidade comprovada?" default="Flow_014">
+      <bpmn:incoming>Flow_012</bpmn:incoming>
+      <bpmn:outgoing>Flow_013</bpmn:outgoing>
+      <bpmn:outgoing>Flow_014</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="RevisaoManualIdentidade" name="Revisao manual de identidade">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="form-revisao-identidade" />
+        <zeebe:assignmentDefinition candidateGroups="ANALISTA_COMPLIANCE" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_013</bpmn:incoming>
+      <bpmn:outgoing>Flow_015</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GwDuvidaPersiste" name="Duvida persiste?" default="Flow_017">
+      <bpmn:incoming>Flow_015</bpmn:incoming>
+      <bpmn:outgoing>Flow_016</bpmn:outgoing>
+      <bpmn:outgoing>Flow_017</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="RecusadoIdentidade" name="Recusado: identidade nao comprovada">
+      <bpmn:incoming>Flow_016</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="GwJoinIdentidade" name="Identidade resolvida">
+      <bpmn:incoming>Flow_014</bpmn:incoming>
+      <bpmn:incoming>Flow_017</bpmn:incoming>
+      <bpmn:outgoing>Flow_018</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="CompletarFicha" name="Confirmar e completar Ficha de Cliente">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="form-ficha-cliente" />
+        <zeebe:assignmentDefinition candidateGroups="CLIENTE" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_018</bpmn:incoming>
+      <bpmn:outgoing>Flow_019</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="SubmeterDocumentos" name="Submeter documentos da checklist">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="form-submeter-documentos" />
+        <zeebe:assignmentDefinition candidateGroups="CLIENTE" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_020</bpmn:incoming>
+      <bpmn:outgoing>Flow_021</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="VerificarDocumentos" name="Verificar documentos submetidos">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="document.verificarDocumento" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_021</bpmn:incoming>
+      <bpmn:outgoing>Flow_022</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics>
+        <bpmn:extensionElements>
+          <zeebe:loopCharacteristics inputCollection="=checklist" inputElement="requisito" outputCollection="verificacoes" outputElement="=verificacao" />
+        </bpmn:extensionElements>
+      </bpmn:multiInstanceLoopCharacteristics>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GwChecklistCompleta" name="Checklist completa?" default="Flow_024">
+      <bpmn:incoming>Flow_022</bpmn:incoming>
+      <bpmn:outgoing>Flow_023</bpmn:outgoing>
+      <bpmn:outgoing>Flow_024</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="TriarPep" name="Triar PEP de todas as partes">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="kyc.triarPep" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_024</bpmn:incoming>
+      <bpmn:outgoing>Flow_025</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics>
+        <bpmn:extensionElements>
+          <zeebe:loopCharacteristics inputCollection="=partes" inputElement="parte" outputCollection="triagensPep" outputElement="=triagem" />
+        </bpmn:extensionElements>
+      </bpmn:multiInstanceLoopCharacteristics>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="RastrearSancoes" name="Rastrear sancoes">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="kyc.rastrearSancoes" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_025</bpmn:incoming>
+      <bpmn:outgoing>Flow_026</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:businessRuleTask id="CalcularRisco" name="Calcular risco BC/FT/FPADM">
+      <bpmn:extensionElements>
+        <zeebe:calledDecision decisionId="risco_bcft" resultVariable="risco" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_026</bpmn:incoming>
+      <bpmn:outgoing>Flow_027</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:businessRuleTask id="DeterminarDiligencia" name="Determinar nivel de diligencia">
+      <bpmn:extensionElements>
+        <zeebe:calledDecision decisionId="nivel_diligencia" resultVariable="diligencia" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_027</bpmn:incoming>
+      <bpmn:outgoing>Flow_028</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:exclusiveGateway id="GwDiligenciaReforcada" name="Diligencia reforcada?" default="Flow_030">
+      <bpmn:incoming>Flow_028</bpmn:incoming>
+      <bpmn:outgoing>Flow_029</bpmn:outgoing>
+      <bpmn:outgoing>Flow_030</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="AprovarDiligenciaReforcada" name="Aprovar diligencia reforcada">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="form-aprovar-diligencia-reforcada" />
+        <zeebe:assignmentDefinition candidateGroups="CHEFE_COMPLIANCE" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_029</bpmn:incoming>
+      <bpmn:outgoing>Flow_031</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GwEddAprovada" name="Aprovada?" default="Flow_033">
+      <bpmn:incoming>Flow_031</bpmn:incoming>
+      <bpmn:outgoing>Flow_032</bpmn:outgoing>
+      <bpmn:outgoing>Flow_033</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="RecusadoRisco" name="Recusado: risco">
+      <bpmn:incoming>Flow_032</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="GwJoinDiligencia" name="Diligencia concluida">
+      <bpmn:incoming>Flow_030</bpmn:incoming>
+      <bpmn:incoming>Flow_033</bpmn:incoming>
+      <bpmn:outgoing>Flow_034</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="SelecionarRegime" name="Selecionar regime de titularidade">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="form-selecionar-regime" />
+        <zeebe:assignmentDefinition candidateGroups="CLIENTE" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_034</bpmn:incoming>
+      <bpmn:outgoing>Flow_035</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="GerarCondicoes" name="Gerar Condicoes Gerais, Particulares e FTI">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="contract.gerarCondicoes" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_035</bpmn:incoming>
+      <bpmn:outgoing>Flow_036</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:businessRuleTask id="ValidarCobertura" name="Validar cobertura dos 13 temas">
+      <bpmn:extensionElements>
+        <zeebe:calledDecision decisionId="cobertura_condicoes_gerais" resultVariable="cobertura" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_036</bpmn:incoming>
+      <bpmn:outgoing>Flow_037</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:exclusiveGateway id="GwCoberturaConforme" name="Minuta conforme?" default="Flow_039">
+      <bpmn:incoming>Flow_037</bpmn:incoming>
+      <bpmn:outgoing>Flow_038</bpmn:outgoing>
+      <bpmn:outgoing>Flow_039</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="IncidenteCobertura" name="Incidente: minuta nao conforme">
+      <bpmn:incoming>Flow_038</bpmn:incoming>
+      <bpmn:errorEventDefinition id="EED_IncidenteCobertura" errorRef="Error_MinutaNaoConforme" />
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="DisponibilizarCondicoes" name="Disponibilizar Condicoes e FTI ao cliente">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="contract.disponibilizarCondicoes" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_039</bpmn:incoming>
+      <bpmn:outgoing>Flow_040</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="ArquivarEvidencia" name="Arquivar evidencia de disponibilizacao">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="archive.arquivarEvidenciaDisponibilizacao" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_040</bpmn:incoming>
+      <bpmn:outgoing>Flow_041</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="ConfirmarLeitura" name="Confirmar leitura das condicoes">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="form-confirmar-leitura" />
+        <zeebe:assignmentDefinition candidateGroups="CLIENTE" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_041</bpmn:incoming>
+      <bpmn:outgoing>Flow_042</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GwPodeAssinar" name="Sabe e pode assinar?" default="Flow_044">
+      <bpmn:incoming>Flow_042</bpmn:incoming>
+      <bpmn:outgoing>Flow_043</bpmn:outgoing>
+      <bpmn:outgoing>Flow_044</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Assinar" name="Assinar Ficha de Cliente e contrato">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="form-assinar" />
+        <zeebe:assignmentDefinition candidateGroups="CLIENTE" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_044</bpmn:incoming>
+      <bpmn:outgoing>Flow_045</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="AssinaturaBiometrica" name="Assinar por meio biometrico">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="form-assinatura-biometrica" />
+        <zeebe:assignmentDefinition candidateGroups="CLIENTE" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_043</bpmn:incoming>
+      <bpmn:outgoing>Flow_046</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GwJoinAssinatura" name="Assinatura recolhida">
+      <bpmn:incoming>Flow_045</bpmn:incoming>
+      <bpmn:incoming>Flow_046</bpmn:incoming>
+      <bpmn:outgoing>Flow_047</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="CelebrarContrato" name="Celebrar Contrato de Abertura de Conta">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="contract.celebrarContrato" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_047</bpmn:incoming>
+      <bpmn:outgoing>Flow_048</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="CriarConta" name="Criar conta no core (ABERTA_NAO_ACTIVA)">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="account.criarConta" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_048</bpmn:incoming>
+      <bpmn:outgoing>Flow_049</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="CompensarConta" name="Encerrar conta nao activada" isForCompensation="true">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="account.encerrarContaNaoActivada" retries="3" />
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="ComunicarIban" name="Comunicar IBAN e instrucoes de entrega">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="notification.comunicarIban" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_049</bpmn:incoming>
+      <bpmn:outgoing>Flow_050</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:eventBasedGateway id="GwEventoFundos" name="Aguardar entrega inicial de fundos">
+      <bpmn:incoming>Flow_050</bpmn:incoming>
+      <bpmn:outgoing>Flow_051</bpmn:outgoing>
+      <bpmn:outgoing>Flow_052</bpmn:outgoing>
+    </bpmn:eventBasedGateway>
+    <bpmn:intermediateCatchEvent id="FundosRecebidos" name="Fundos recebidos">
+      <bpmn:incoming>Flow_051</bpmn:incoming>
+      <bpmn:outgoing>Flow_055</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MED_Fundos" messageRef="Message_FundosRecebidos" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:intermediateCatchEvent id="PrazoFundosExpirou" name="Prazo de 15 dias expirou">
+      <bpmn:incoming>Flow_052</bpmn:incoming>
+      <bpmn:outgoing>Flow_053</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TED_Fundos">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P15D</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:intermediateThrowEvent id="CompensarExpirado" name="Compensar conta criada">
+      <bpmn:incoming>Flow_053</bpmn:incoming>
+      <bpmn:outgoing>Flow_054</bpmn:outgoing>
+      <bpmn:compensateEventDefinition id="CED_CompensarExpirado" activityRef="CriarConta" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:endEvent id="Expirado" name="Expirado">
+      <bpmn:incoming>Flow_054</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="VerificarInstituicaoOrigem" name="Verificar elegibilidade da instituicao de origem">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="funding.verificarInstituicaoOrigem" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_055</bpmn:incoming>
+      <bpmn:outgoing>Flow_056</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:businessRuleTask id="VerificarEntregaFundos" name="Verificar entrega inicial de fundos">
+      <bpmn:extensionElements>
+        <zeebe:calledDecision decisionId="entrega_fundos" resultVariable="entregaFundos" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_056</bpmn:incoming>
+      <bpmn:outgoing>Flow_057</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:exclusiveGateway id="GwDecisaoFundos" name="Decisao sobre os fundos" default="Flow_060">
+      <bpmn:incoming>Flow_057</bpmn:incoming>
+      <bpmn:outgoing>Flow_058</bpmn:outgoing>
+      <bpmn:outgoing>Flow_059</bpmn:outgoing>
+      <bpmn:outgoing>Flow_060</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="RecolherJustificacao" name="Recolher justificacao credivel">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="form-recolher-justificacao" />
+        <zeebe:assignmentDefinition candidateGroups="CLIENTE" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_059</bpmn:incoming>
+      <bpmn:outgoing>Flow_061</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="AvaliarJustificacao" name="Avaliar justificacao credivel">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="form-avaliar-justificacao" />
+        <zeebe:assignmentDefinition candidateGroups="ANALISTA_COMPLIANCE" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_061</bpmn:incoming>
+      <bpmn:outgoing>Flow_062</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GwJustificacaoAceite" name="Justificacao aceite?" default="Flow_064">
+      <bpmn:incoming>Flow_062</bpmn:incoming>
+      <bpmn:outgoing>Flow_063</bpmn:outgoing>
+      <bpmn:outgoing>Flow_064</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="GwJoinFundos" name="Fundos verificados">
+      <bpmn:incoming>Flow_060</bpmn:incoming>
+      <bpmn:incoming>Flow_064</bpmn:incoming>
+      <bpmn:outgoing>Flow_067</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="GwJoinRecusaFundos" name="Recusa de fundos">
+      <bpmn:incoming>Flow_058</bpmn:incoming>
+      <bpmn:incoming>Flow_063</bpmn:incoming>
+      <bpmn:outgoing>Flow_065</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:intermediateThrowEvent id="CompensarRecusa" name="Compensar conta criada">
+      <bpmn:incoming>Flow_065</bpmn:incoming>
+      <bpmn:outgoing>Flow_066</bpmn:outgoing>
+      <bpmn:compensateEventDefinition id="CED_CompensarRecusa" activityRef="CriarConta" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:endEvent id="RecusadoFundos" name="Recusado: fundos">
+      <bpmn:incoming>Flow_066</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="ActivarConta" name="Activar conta">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="account.activarConta" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_067</bpmn:incoming>
+      <bpmn:outgoing>Flow_068</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="SelarDossie" name="Selar Dossie de Abertura">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="archive.selarDossie" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_068</bpmn:incoming>
+      <bpmn:outgoing>Flow_069</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="AplicarRetencao" name="Aplicar retencao de 10 anos">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="archive.aplicarRetencao" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_069</bpmn:incoming>
+      <bpmn:outgoing>Flow_070</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="IndexarDossie" name="Indexar para recuperacao atempada">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="archive.indexarDossie" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_070</bpmn:incoming>
+      <bpmn:outgoing>Flow_071</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndActiva" name="Conta activa">
+      <bpmn:incoming>Flow_071</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="GwJoinDocumentos" name="Documentos a submeter">
+      <bpmn:incoming>Flow_019</bpmn:incoming>
+      <bpmn:incoming>Flow_023</bpmn:incoming>
+      <bpmn:outgoing>Flow_020</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:boundaryEvent id="BoundaryCompensarConta" name="Compensar" attachedToRef="CriarConta">
+      <bpmn:compensateEventDefinition id="CED_Boundary" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_001" sourceRef="StartPedido" targetRef="Consentimento" />
+    <bpmn:sequenceFlow id="Flow_002" sourceRef="Consentimento" targetRef="DeclararPerfil" />
+    <bpmn:sequenceFlow id="Flow_003" sourceRef="DeclararPerfil" targetRef="AvaliarElegibilidade" />
+    <bpmn:sequenceFlow id="Flow_004" sourceRef="AvaliarElegibilidade" targetRef="GwElegivel" />
+    <bpmn:sequenceFlow id="Flow_005" name="nao" sourceRef="GwElegivel" targetRef="NaoElegivel">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=elegibilidade.elegivel = false</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_006" name="sim" sourceRef="GwElegivel" targetRef="GerarChecklist" />
+    <bpmn:sequenceFlow id="Flow_007" sourceRef="GerarChecklist" targetRef="CapturarDocumento" />
+    <bpmn:sequenceFlow id="Flow_008" sourceRef="CapturarDocumento" targetRef="ExtrairDadosDocumento" />
+    <bpmn:sequenceFlow id="Flow_009" sourceRef="ExtrairDadosDocumento" targetRef="ValidarDocumento" />
+    <bpmn:sequenceFlow id="Flow_010" sourceRef="ValidarDocumento" targetRef="CapturarSelfie" />
+    <bpmn:sequenceFlow id="Flow_011" sourceRef="CapturarSelfie" targetRef="CorrespondenciaFacial" />
+    <bpmn:sequenceFlow id="Flow_012" sourceRef="CorrespondenciaFacial" targetRef="GwIdentidade" />
+    <bpmn:sequenceFlow id="Flow_013" name="abaixo do limiar" sourceRef="GwIdentidade" targetRef="RevisaoManualIdentidade">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=identidadeComprovada = false</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_014" name="comprovada" sourceRef="GwIdentidade" targetRef="GwJoinIdentidade" />
+    <bpmn:sequenceFlow id="Flow_015" sourceRef="RevisaoManualIdentidade" targetRef="GwDuvidaPersiste" />
+    <bpmn:sequenceFlow id="Flow_016" name="sim" sourceRef="GwDuvidaPersiste" targetRef="RecusadoIdentidade">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=duvidaPersiste = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_017" name="nao" sourceRef="GwDuvidaPersiste" targetRef="GwJoinIdentidade" />
+    <bpmn:sequenceFlow id="Flow_018" sourceRef="GwJoinIdentidade" targetRef="CompletarFicha" />
+    <bpmn:sequenceFlow id="Flow_019" sourceRef="CompletarFicha" targetRef="GwJoinDocumentos" />
+    <bpmn:sequenceFlow id="Flow_020" sourceRef="GwJoinDocumentos" targetRef="SubmeterDocumentos" />
+    <bpmn:sequenceFlow id="Flow_021" sourceRef="SubmeterDocumentos" targetRef="VerificarDocumentos" />
+    <bpmn:sequenceFlow id="Flow_022" sourceRef="VerificarDocumentos" targetRef="GwChecklistCompleta" />
+    <bpmn:sequenceFlow id="Flow_023" name="incompleta" sourceRef="GwChecklistCompleta" targetRef="GwJoinDocumentos">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=checklistCompleta = false</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_024" name="completa" sourceRef="GwChecklistCompleta" targetRef="TriarPep" />
+    <bpmn:sequenceFlow id="Flow_025" sourceRef="TriarPep" targetRef="RastrearSancoes" />
+    <bpmn:sequenceFlow id="Flow_026" sourceRef="RastrearSancoes" targetRef="CalcularRisco" />
+    <bpmn:sequenceFlow id="Flow_027" sourceRef="CalcularRisco" targetRef="DeterminarDiligencia" />
+    <bpmn:sequenceFlow id="Flow_028" sourceRef="DeterminarDiligencia" targetRef="GwDiligenciaReforcada" />
+    <bpmn:sequenceFlow id="Flow_029" name="reforcada" sourceRef="GwDiligenciaReforcada" targetRef="AprovarDiligenciaReforcada">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=diligencia.nivel = &quot;REFORCADA&quot;</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_030" name="normal ou simplificada" sourceRef="GwDiligenciaReforcada" targetRef="GwJoinDiligencia" />
+    <bpmn:sequenceFlow id="Flow_031" sourceRef="AprovarDiligenciaReforcada" targetRef="GwEddAprovada" />
+    <bpmn:sequenceFlow id="Flow_032" name="nao" sourceRef="GwEddAprovada" targetRef="RecusadoRisco">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=aprovacaoEdd.decisao = &quot;RECUSADA&quot;</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_033" name="sim" sourceRef="GwEddAprovada" targetRef="GwJoinDiligencia" />
+    <bpmn:sequenceFlow id="Flow_034" sourceRef="GwJoinDiligencia" targetRef="SelecionarRegime" />
+    <bpmn:sequenceFlow id="Flow_035" sourceRef="SelecionarRegime" targetRef="GerarCondicoes" />
+    <bpmn:sequenceFlow id="Flow_036" sourceRef="GerarCondicoes" targetRef="ValidarCobertura" />
+    <bpmn:sequenceFlow id="Flow_037" sourceRef="ValidarCobertura" targetRef="GwCoberturaConforme" />
+    <bpmn:sequenceFlow id="Flow_038" name="nao conforme" sourceRef="GwCoberturaConforme" targetRef="IncidenteCobertura">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=cobertura.conforme = false</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_039" name="conforme" sourceRef="GwCoberturaConforme" targetRef="DisponibilizarCondicoes" />
+    <bpmn:sequenceFlow id="Flow_040" sourceRef="DisponibilizarCondicoes" targetRef="ArquivarEvidencia" />
+    <bpmn:sequenceFlow id="Flow_041" sourceRef="ArquivarEvidencia" targetRef="ConfirmarLeitura" />
+    <bpmn:sequenceFlow id="Flow_042" sourceRef="ConfirmarLeitura" targetRef="GwPodeAssinar" />
+    <bpmn:sequenceFlow id="Flow_043" name="nao sabe ou nao pode" sourceRef="GwPodeAssinar" targetRef="AssinaturaBiometrica">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=podeAssinar = false</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_044" name="sim" sourceRef="GwPodeAssinar" targetRef="Assinar" />
+    <bpmn:sequenceFlow id="Flow_045" sourceRef="Assinar" targetRef="GwJoinAssinatura" />
+    <bpmn:sequenceFlow id="Flow_046" sourceRef="AssinaturaBiometrica" targetRef="GwJoinAssinatura" />
+    <bpmn:sequenceFlow id="Flow_047" sourceRef="GwJoinAssinatura" targetRef="CelebrarContrato" />
+    <bpmn:sequenceFlow id="Flow_048" sourceRef="CelebrarContrato" targetRef="CriarConta" />
+    <bpmn:sequenceFlow id="Flow_049" sourceRef="CriarConta" targetRef="ComunicarIban" />
+    <bpmn:sequenceFlow id="Flow_050" sourceRef="ComunicarIban" targetRef="GwEventoFundos" />
+    <bpmn:sequenceFlow id="Flow_051" sourceRef="GwEventoFundos" targetRef="FundosRecebidos" />
+    <bpmn:sequenceFlow id="Flow_052" sourceRef="GwEventoFundos" targetRef="PrazoFundosExpirou" />
+    <bpmn:sequenceFlow id="Flow_053" sourceRef="PrazoFundosExpirou" targetRef="CompensarExpirado" />
+    <bpmn:sequenceFlow id="Flow_054" sourceRef="CompensarExpirado" targetRef="Expirado" />
+    <bpmn:sequenceFlow id="Flow_055" sourceRef="FundosRecebidos" targetRef="VerificarInstituicaoOrigem" />
+    <bpmn:sequenceFlow id="Flow_056" sourceRef="VerificarInstituicaoOrigem" targetRef="VerificarEntregaFundos" />
+    <bpmn:sequenceFlow id="Flow_057" sourceRef="VerificarEntregaFundos" targetRef="GwDecisaoFundos" />
+    <bpmn:sequenceFlow id="Flow_058" name="rejeitar" sourceRef="GwDecisaoFundos" targetRef="GwJoinRecusaFundos">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=entregaFundos.decisao = &quot;REJEITAR&quot;</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_059" name="exigir justificacao" sourceRef="GwDecisaoFundos" targetRef="RecolherJustificacao">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=entregaFundos.decisao = &quot;EXIGIR_JUSTIFICACAO&quot;</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_060" name="aceitar" sourceRef="GwDecisaoFundos" targetRef="GwJoinFundos" />
+    <bpmn:sequenceFlow id="Flow_061" sourceRef="RecolherJustificacao" targetRef="AvaliarJustificacao" />
+    <bpmn:sequenceFlow id="Flow_062" sourceRef="AvaliarJustificacao" targetRef="GwJustificacaoAceite" />
+    <bpmn:sequenceFlow id="Flow_063" name="nao" sourceRef="GwJustificacaoAceite" targetRef="GwJoinRecusaFundos">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=justificacaoAceite = false</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_064" name="sim" sourceRef="GwJustificacaoAceite" targetRef="GwJoinFundos" />
+    <bpmn:sequenceFlow id="Flow_065" sourceRef="GwJoinRecusaFundos" targetRef="CompensarRecusa" />
+    <bpmn:sequenceFlow id="Flow_066" sourceRef="CompensarRecusa" targetRef="RecusadoFundos" />
+    <bpmn:sequenceFlow id="Flow_067" sourceRef="GwJoinFundos" targetRef="ActivarConta" />
+    <bpmn:sequenceFlow id="Flow_068" sourceRef="ActivarConta" targetRef="SelarDossie" />
+    <bpmn:sequenceFlow id="Flow_069" sourceRef="SelarDossie" targetRef="AplicarRetencao" />
+    <bpmn:sequenceFlow id="Flow_070" sourceRef="AplicarRetencao" targetRef="IndexarDossie" />
+    <bpmn:sequenceFlow id="Flow_071" sourceRef="IndexarDossie" targetRef="EndActiva" />
+    <bpmn:association id="Association_Compensar" associationDirection="One" sourceRef="BoundaryCompensarConta" targetRef="CompensarConta" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="PRC-01-abertura-conta">
+      <bpmndi:BPMNShape id="StartPedido_di" bpmnElement="StartPedido">
+        <dc:Bounds x="202" y="222" width="36" height="36" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Consentimento_di" bpmnElement="Consentimento">
+        <dc:Bounds x="330" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DeclararPerfil_di" bpmnElement="DeclararPerfil">
+        <dc:Bounds x="490" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AvaliarElegibilidade_di" bpmnElement="AvaliarElegibilidade">
+        <dc:Bounds x="650" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwElegivel_di" bpmnElement="GwElegivel">
+        <dc:Bounds x="835" y="215" width="50" height="50" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="NaoElegivel_di" bpmnElement="NaoElegivel">
+        <dc:Bounds x="1002" y="402" width="36" height="36" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GerarChecklist_di" bpmnElement="GerarChecklist">
+        <dc:Bounds x="970" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CapturarDocumento_di" bpmnElement="CapturarDocumento">
+        <dc:Bounds x="1130" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExtrairDadosDocumento_di" bpmnElement="ExtrairDadosDocumento">
+        <dc:Bounds x="1290" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ValidarDocumento_di" bpmnElement="ValidarDocumento">
+        <dc:Bounds x="1450" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CapturarSelfie_di" bpmnElement="CapturarSelfie">
+        <dc:Bounds x="1610" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CorrespondenciaFacial_di" bpmnElement="CorrespondenciaFacial">
+        <dc:Bounds x="1770" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwIdentidade_di" bpmnElement="GwIdentidade">
+        <dc:Bounds x="1955" y="215" width="50" height="50" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="RevisaoManualIdentidade_di" bpmnElement="RevisaoManualIdentidade">
+        <dc:Bounds x="2090" y="380" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwDuvidaPersiste_di" bpmnElement="GwDuvidaPersiste">
+        <dc:Bounds x="2275" y="395" width="50" height="50" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="RecusadoIdentidade_di" bpmnElement="RecusadoIdentidade">
+        <dc:Bounds x="2442" y="582" width="36" height="36" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwJoinIdentidade_di" bpmnElement="GwJoinIdentidade">
+        <dc:Bounds x="2435" y="215" width="50" height="50" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CompletarFicha_di" bpmnElement="CompletarFicha">
+        <dc:Bounds x="2570" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubmeterDocumentos_di" bpmnElement="SubmeterDocumentos">
+        <dc:Bounds x="2890" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="VerificarDocumentos_di" bpmnElement="VerificarDocumentos">
+        <dc:Bounds x="3050" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwChecklistCompleta_di" bpmnElement="GwChecklistCompleta">
+        <dc:Bounds x="3235" y="215" width="50" height="50" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TriarPep_di" bpmnElement="TriarPep">
+        <dc:Bounds x="3370" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="RastrearSancoes_di" bpmnElement="RastrearSancoes">
+        <dc:Bounds x="3530" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CalcularRisco_di" bpmnElement="CalcularRisco">
+        <dc:Bounds x="3690" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DeterminarDiligencia_di" bpmnElement="DeterminarDiligencia">
+        <dc:Bounds x="3850" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwDiligenciaReforcada_di" bpmnElement="GwDiligenciaReforcada">
+        <dc:Bounds x="4035" y="215" width="50" height="50" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AprovarDiligenciaReforcada_di" bpmnElement="AprovarDiligenciaReforcada">
+        <dc:Bounds x="4170" y="380" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwEddAprovada_di" bpmnElement="GwEddAprovada">
+        <dc:Bounds x="4355" y="395" width="50" height="50" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="RecusadoRisco_di" bpmnElement="RecusadoRisco">
+        <dc:Bounds x="4522" y="402" width="36" height="36" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwJoinDiligencia_di" bpmnElement="GwJoinDiligencia">
+        <dc:Bounds x="4515" y="215" width="50" height="50" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SelecionarRegime_di" bpmnElement="SelecionarRegime">
+        <dc:Bounds x="4650" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GerarCondicoes_di" bpmnElement="GerarCondicoes">
+        <dc:Bounds x="4810" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ValidarCobertura_di" bpmnElement="ValidarCobertura">
+        <dc:Bounds x="4970" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwCoberturaConforme_di" bpmnElement="GwCoberturaConforme">
+        <dc:Bounds x="5155" y="215" width="50" height="50" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="IncidenteCobertura_di" bpmnElement="IncidenteCobertura">
+        <dc:Bounds x="5322" y="402" width="36" height="36" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DisponibilizarCondicoes_di" bpmnElement="DisponibilizarCondicoes">
+        <dc:Bounds x="5290" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ArquivarEvidencia_di" bpmnElement="ArquivarEvidencia">
+        <dc:Bounds x="5450" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ConfirmarLeitura_di" bpmnElement="ConfirmarLeitura">
+        <dc:Bounds x="5610" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwPodeAssinar_di" bpmnElement="GwPodeAssinar">
+        <dc:Bounds x="5795" y="215" width="50" height="50" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Assinar_di" bpmnElement="Assinar">
+        <dc:Bounds x="5930" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AssinaturaBiometrica_di" bpmnElement="AssinaturaBiometrica">
+        <dc:Bounds x="5930" y="380" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwJoinAssinatura_di" bpmnElement="GwJoinAssinatura">
+        <dc:Bounds x="6115" y="215" width="50" height="50" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CelebrarContrato_di" bpmnElement="CelebrarContrato">
+        <dc:Bounds x="6250" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CriarConta_di" bpmnElement="CriarConta">
+        <dc:Bounds x="6410" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CompensarConta_di" bpmnElement="CompensarConta">
+        <dc:Bounds x="6410" y="560" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ComunicarIban_di" bpmnElement="ComunicarIban">
+        <dc:Bounds x="6570" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwEventoFundos_di" bpmnElement="GwEventoFundos">
+        <dc:Bounds x="6755" y="215" width="50" height="50" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="FundosRecebidos_di" bpmnElement="FundosRecebidos">
+        <dc:Bounds x="6922" y="222" width="36" height="36" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="PrazoFundosExpirou_di" bpmnElement="PrazoFundosExpirou">
+        <dc:Bounds x="6922" y="402" width="36" height="36" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CompensarExpirado_di" bpmnElement="CompensarExpirado">
+        <dc:Bounds x="7082" y="402" width="36" height="36" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Expirado_di" bpmnElement="Expirado">
+        <dc:Bounds x="7242" y="402" width="36" height="36" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="VerificarInstituicaoOrigem_di" bpmnElement="VerificarInstituicaoOrigem">
+        <dc:Bounds x="7050" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="VerificarEntregaFundos_di" bpmnElement="VerificarEntregaFundos">
+        <dc:Bounds x="7210" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwDecisaoFundos_di" bpmnElement="GwDecisaoFundos">
+        <dc:Bounds x="7395" y="215" width="50" height="50" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="RecolherJustificacao_di" bpmnElement="RecolherJustificacao">
+        <dc:Bounds x="7530" y="380" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AvaliarJustificacao_di" bpmnElement="AvaliarJustificacao">
+        <dc:Bounds x="7690" y="380" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwJustificacaoAceite_di" bpmnElement="GwJustificacaoAceite">
+        <dc:Bounds x="7875" y="395" width="50" height="50" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwJoinFundos_di" bpmnElement="GwJoinFundos">
+        <dc:Bounds x="8035" y="215" width="50" height="50" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwJoinRecusaFundos_di" bpmnElement="GwJoinRecusaFundos">
+        <dc:Bounds x="8035" y="575" width="50" height="50" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CompensarRecusa_di" bpmnElement="CompensarRecusa">
+        <dc:Bounds x="8202" y="582" width="36" height="36" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="RecusadoFundos_di" bpmnElement="RecusadoFundos">
+        <dc:Bounds x="8362" y="582" width="36" height="36" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ActivarConta_di" bpmnElement="ActivarConta">
+        <dc:Bounds x="8170" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SelarDossie_di" bpmnElement="SelarDossie">
+        <dc:Bounds x="8330" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AplicarRetencao_di" bpmnElement="AplicarRetencao">
+        <dc:Bounds x="8490" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="IndexarDossie_di" bpmnElement="IndexarDossie">
+        <dc:Bounds x="8650" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndActiva_di" bpmnElement="EndActiva">
+        <dc:Bounds x="8842" y="222" width="36" height="36" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwJoinDocumentos_di" bpmnElement="GwJoinDocumentos">
+        <dc:Bounds x="2755" y="215" width="50" height="50" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BoundaryCompensarConta_di" bpmnElement="BoundaryCompensarConta">
+        <dc:Bounds x="6442" y="262" width="36" height="36" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_001_di" bpmnElement="Flow_001">
+        <di:waypoint x="238" y="240" />
+        <di:waypoint x="330" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_002_di" bpmnElement="Flow_002">
+        <di:waypoint x="430" y="240" />
+        <di:waypoint x="490" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_003_di" bpmnElement="Flow_003">
+        <di:waypoint x="590" y="240" />
+        <di:waypoint x="650" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_004_di" bpmnElement="Flow_004">
+        <di:waypoint x="750" y="240" />
+        <di:waypoint x="835" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_005_di" bpmnElement="Flow_005">
+        <di:waypoint x="885" y="240" />
+        <di:waypoint x="943.5" y="240" />
+        <di:waypoint x="943.5" y="420" />
+        <di:waypoint x="1002" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_006_di" bpmnElement="Flow_006">
+        <di:waypoint x="885" y="240" />
+        <di:waypoint x="970" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_007_di" bpmnElement="Flow_007">
+        <di:waypoint x="1070" y="240" />
+        <di:waypoint x="1130" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_008_di" bpmnElement="Flow_008">
+        <di:waypoint x="1230" y="240" />
+        <di:waypoint x="1290" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_009_di" bpmnElement="Flow_009">
+        <di:waypoint x="1390" y="240" />
+        <di:waypoint x="1450" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_010_di" bpmnElement="Flow_010">
+        <di:waypoint x="1550" y="240" />
+        <di:waypoint x="1610" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_011_di" bpmnElement="Flow_011">
+        <di:waypoint x="1710" y="240" />
+        <di:waypoint x="1770" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_012_di" bpmnElement="Flow_012">
+        <di:waypoint x="1870" y="240" />
+        <di:waypoint x="1955" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_013_di" bpmnElement="Flow_013">
+        <di:waypoint x="2005" y="240" />
+        <di:waypoint x="2047.5" y="240" />
+        <di:waypoint x="2047.5" y="420" />
+        <di:waypoint x="2090" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_014_di" bpmnElement="Flow_014">
+        <di:waypoint x="2005" y="240" />
+        <di:waypoint x="2435" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_015_di" bpmnElement="Flow_015">
+        <di:waypoint x="2190" y="420" />
+        <di:waypoint x="2275" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_016_di" bpmnElement="Flow_016">
+        <di:waypoint x="2325" y="420" />
+        <di:waypoint x="2383.5" y="420" />
+        <di:waypoint x="2383.5" y="600" />
+        <di:waypoint x="2442" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_017_di" bpmnElement="Flow_017">
+        <di:waypoint x="2325" y="420" />
+        <di:waypoint x="2380" y="420" />
+        <di:waypoint x="2380" y="240" />
+        <di:waypoint x="2435" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_018_di" bpmnElement="Flow_018">
+        <di:waypoint x="2485" y="240" />
+        <di:waypoint x="2570" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_019_di" bpmnElement="Flow_019">
+        <di:waypoint x="2670" y="240" />
+        <di:waypoint x="2755" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_020_di" bpmnElement="Flow_020">
+        <di:waypoint x="2805" y="240" />
+        <di:waypoint x="2890" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_021_di" bpmnElement="Flow_021">
+        <di:waypoint x="2990" y="240" />
+        <di:waypoint x="3050" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_022_di" bpmnElement="Flow_022">
+        <di:waypoint x="3150" y="240" />
+        <di:waypoint x="3235" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_023_di" bpmnElement="Flow_023">
+        <di:waypoint x="3285" y="240" />
+        <di:waypoint x="2755" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_024_di" bpmnElement="Flow_024">
+        <di:waypoint x="3285" y="240" />
+        <di:waypoint x="3370" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_025_di" bpmnElement="Flow_025">
+        <di:waypoint x="3470" y="240" />
+        <di:waypoint x="3530" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_026_di" bpmnElement="Flow_026">
+        <di:waypoint x="3630" y="240" />
+        <di:waypoint x="3690" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_027_di" bpmnElement="Flow_027">
+        <di:waypoint x="3790" y="240" />
+        <di:waypoint x="3850" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_028_di" bpmnElement="Flow_028">
+        <di:waypoint x="3950" y="240" />
+        <di:waypoint x="4035" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_029_di" bpmnElement="Flow_029">
+        <di:waypoint x="4085" y="240" />
+        <di:waypoint x="4127.5" y="240" />
+        <di:waypoint x="4127.5" y="420" />
+        <di:waypoint x="4170" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_030_di" bpmnElement="Flow_030">
+        <di:waypoint x="4085" y="240" />
+        <di:waypoint x="4515" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_031_di" bpmnElement="Flow_031">
+        <di:waypoint x="4270" y="420" />
+        <di:waypoint x="4355" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_032_di" bpmnElement="Flow_032">
+        <di:waypoint x="4405" y="420" />
+        <di:waypoint x="4522" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_033_di" bpmnElement="Flow_033">
+        <di:waypoint x="4405" y="420" />
+        <di:waypoint x="4460" y="420" />
+        <di:waypoint x="4460" y="240" />
+        <di:waypoint x="4515" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_034_di" bpmnElement="Flow_034">
+        <di:waypoint x="4565" y="240" />
+        <di:waypoint x="4650" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_035_di" bpmnElement="Flow_035">
+        <di:waypoint x="4750" y="240" />
+        <di:waypoint x="4810" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_036_di" bpmnElement="Flow_036">
+        <di:waypoint x="4910" y="240" />
+        <di:waypoint x="4970" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_037_di" bpmnElement="Flow_037">
+        <di:waypoint x="5070" y="240" />
+        <di:waypoint x="5155" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_038_di" bpmnElement="Flow_038">
+        <di:waypoint x="5205" y="240" />
+        <di:waypoint x="5263.5" y="240" />
+        <di:waypoint x="5263.5" y="420" />
+        <di:waypoint x="5322" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_039_di" bpmnElement="Flow_039">
+        <di:waypoint x="5205" y="240" />
+        <di:waypoint x="5290" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_040_di" bpmnElement="Flow_040">
+        <di:waypoint x="5390" y="240" />
+        <di:waypoint x="5450" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_041_di" bpmnElement="Flow_041">
+        <di:waypoint x="5550" y="240" />
+        <di:waypoint x="5610" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_042_di" bpmnElement="Flow_042">
+        <di:waypoint x="5710" y="240" />
+        <di:waypoint x="5795" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_043_di" bpmnElement="Flow_043">
+        <di:waypoint x="5845" y="240" />
+        <di:waypoint x="5887.5" y="240" />
+        <di:waypoint x="5887.5" y="420" />
+        <di:waypoint x="5930" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_044_di" bpmnElement="Flow_044">
+        <di:waypoint x="5845" y="240" />
+        <di:waypoint x="5930" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_045_di" bpmnElement="Flow_045">
+        <di:waypoint x="6030" y="240" />
+        <di:waypoint x="6115" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_046_di" bpmnElement="Flow_046">
+        <di:waypoint x="6030" y="420" />
+        <di:waypoint x="6072.5" y="420" />
+        <di:waypoint x="6072.5" y="240" />
+        <di:waypoint x="6115" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_047_di" bpmnElement="Flow_047">
+        <di:waypoint x="6165" y="240" />
+        <di:waypoint x="6250" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_048_di" bpmnElement="Flow_048">
+        <di:waypoint x="6350" y="240" />
+        <di:waypoint x="6410" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_049_di" bpmnElement="Flow_049">
+        <di:waypoint x="6510" y="240" />
+        <di:waypoint x="6570" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_050_di" bpmnElement="Flow_050">
+        <di:waypoint x="6670" y="240" />
+        <di:waypoint x="6755" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_051_di" bpmnElement="Flow_051">
+        <di:waypoint x="6805" y="240" />
+        <di:waypoint x="6922" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_052_di" bpmnElement="Flow_052">
+        <di:waypoint x="6805" y="240" />
+        <di:waypoint x="6863.5" y="240" />
+        <di:waypoint x="6863.5" y="420" />
+        <di:waypoint x="6922" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_053_di" bpmnElement="Flow_053">
+        <di:waypoint x="6958" y="420" />
+        <di:waypoint x="7082" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_054_di" bpmnElement="Flow_054">
+        <di:waypoint x="7118" y="420" />
+        <di:waypoint x="7242" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_055_di" bpmnElement="Flow_055">
+        <di:waypoint x="6958" y="240" />
+        <di:waypoint x="7050" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_056_di" bpmnElement="Flow_056">
+        <di:waypoint x="7150" y="240" />
+        <di:waypoint x="7210" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_057_di" bpmnElement="Flow_057">
+        <di:waypoint x="7310" y="240" />
+        <di:waypoint x="7395" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_058_di" bpmnElement="Flow_058">
+        <di:waypoint x="7445" y="240" />
+        <di:waypoint x="7740" y="240" />
+        <di:waypoint x="7740" y="600" />
+        <di:waypoint x="8035" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_059_di" bpmnElement="Flow_059">
+        <di:waypoint x="7445" y="240" />
+        <di:waypoint x="7487.5" y="240" />
+        <di:waypoint x="7487.5" y="420" />
+        <di:waypoint x="7530" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_060_di" bpmnElement="Flow_060">
+        <di:waypoint x="7445" y="240" />
+        <di:waypoint x="8035" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_061_di" bpmnElement="Flow_061">
+        <di:waypoint x="7630" y="420" />
+        <di:waypoint x="7690" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_062_di" bpmnElement="Flow_062">
+        <di:waypoint x="7790" y="420" />
+        <di:waypoint x="7875" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_063_di" bpmnElement="Flow_063">
+        <di:waypoint x="7925" y="420" />
+        <di:waypoint x="7980" y="420" />
+        <di:waypoint x="7980" y="600" />
+        <di:waypoint x="8035" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_064_di" bpmnElement="Flow_064">
+        <di:waypoint x="7925" y="420" />
+        <di:waypoint x="7980" y="420" />
+        <di:waypoint x="7980" y="240" />
+        <di:waypoint x="8035" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_065_di" bpmnElement="Flow_065">
+        <di:waypoint x="8085" y="600" />
+        <di:waypoint x="8202" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_066_di" bpmnElement="Flow_066">
+        <di:waypoint x="8238" y="600" />
+        <di:waypoint x="8362" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_067_di" bpmnElement="Flow_067">
+        <di:waypoint x="8085" y="240" />
+        <di:waypoint x="8170" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_068_di" bpmnElement="Flow_068">
+        <di:waypoint x="8270" y="240" />
+        <di:waypoint x="8330" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_069_di" bpmnElement="Flow_069">
+        <di:waypoint x="8430" y="240" />
+        <di:waypoint x="8490" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_070_di" bpmnElement="Flow_070">
+        <di:waypoint x="8590" y="240" />
+        <di:waypoint x="8650" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_071_di" bpmnElement="Flow_071">
+        <di:waypoint x="8750" y="240" />
+        <di:waypoint x="8842" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_Compensar_di" bpmnElement="Association_Compensar">
+        <di:waypoint x="6460" y="298" />
+        <di:waypoint x="6460" y="560" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

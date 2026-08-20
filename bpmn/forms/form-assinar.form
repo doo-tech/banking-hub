@@ -1,0 +1,46 @@
+{
+  "components": [
+    {
+      "type": "text",
+      "text": "### Assinatura\n\nA sua assinatura fica vinculada ao conteudo exacto do documento neste momento.",
+      "id": "Txt_Ass",
+      "layout": {
+        "row": "row_1",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "hashDocumento",
+      "label": "Impressao digital do documento a assinar",
+      "readonly": true,
+      "id": "Txt_Hash",
+      "layout": {
+        "row": "row_2",
+        "columns": null
+      }
+    },
+    {
+      "type": "checkbox",
+      "key": "assinaturaRecolhida",
+      "label": "Assinatura recolhida",
+      "validate": {
+        "required": true
+      },
+      "id": "Chk_Ass",
+      "layout": {
+        "row": "row_3",
+        "columns": null
+      }
+    }
+  ],
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Banking Hub",
+    "version": "0.1.0"
+  },
+  "schemaVersion": 18,
+  "id": "form-assinar",
+  "type": "default"
+}

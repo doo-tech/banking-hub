@@ -1,0 +1,92 @@
+{
+  "components": [
+    {
+      "type": "text",
+      "text": "### Avaliacao da justificacao\n\nA norma exige que a justificacao seja credivel. Nao e uma condicao verificavel por regra: e um juizo de razoabilidade, e por isso esta decisao e humana.",
+      "id": "Txt_Aval",
+      "layout": {
+        "row": "row_1",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "nomeOrdenante",
+      "label": "Titular da conta de origem",
+      "readonly": true,
+      "id": "Txt_OrdAv",
+      "layout": {
+        "row": "row_2",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "relacaoComOrdenante",
+      "label": "Relacao declarada",
+      "readonly": true,
+      "id": "Txt_RelAv",
+      "layout": {
+        "row": "row_2",
+        "columns": null
+      }
+    },
+    {
+      "type": "textarea",
+      "key": "justificacaoCredivel",
+      "label": "Justificacao apresentada",
+      "readonly": true,
+      "id": "Txa_JustAv",
+      "layout": {
+        "row": "row_3",
+        "columns": null
+      }
+    },
+    {
+      "type": "radio",
+      "key": "decisaoJustificacao",
+      "label": "A justificacao e credivel?",
+      "validate": {
+        "required": true
+      },
+      "values": [
+        {
+          "label": "Sim — aceitar a entrega de fundos",
+          "value": "ACEITE"
+        },
+        {
+          "label": "Nao — recusar e devolver os fundos",
+          "value": "RECUSADA"
+        }
+      ],
+      "id": "Rad_Just",
+      "layout": {
+        "row": "row_4",
+        "columns": null
+      }
+    },
+    {
+      "type": "textarea",
+      "key": "fundamentoJustificacao",
+      "label": "Fundamento da decisao",
+      "validate": {
+        "required": true,
+        "minLength": 30
+      },
+      "id": "Txa_FundJust",
+      "layout": {
+        "row": "row_5",
+        "columns": null
+      }
+    }
+  ],
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Banking Hub",
+    "version": "0.1.0"
+  },
+  "schemaVersion": 18,
+  "id": "form-avaliar-justificacao",
+  "type": "default"
+}

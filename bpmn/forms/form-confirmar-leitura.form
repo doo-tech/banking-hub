@@ -1,0 +1,93 @@
+{
+  "components": [
+    {
+      "type": "text",
+      "text": "### Condicoes do contrato\n\nAs Condicoes Gerais, as Condicoes Particulares e a Ficha Tecnica Informativa foram-lhe disponibilizadas. O Artigo 5.o do Aviso n.o 1/23 exige que isto aconteca antes da abertura da conta.",
+      "id": "Txt_Cond",
+      "layout": {
+        "row": "row_1",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "versaoMinuta",
+      "label": "Versao das condicoes disponibilizadas",
+      "readonly": true,
+      "id": "Txt_Minuta",
+      "layout": {
+        "row": "row_2",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "timestampDisponibilizacao",
+      "label": "Data e hora da disponibilizacao",
+      "readonly": true,
+      "id": "Txt_Ts",
+      "layout": {
+        "row": "row_2",
+        "columns": null
+      }
+    },
+    {
+      "type": "checkbox",
+      "key": "confirmacaoLeituraCg",
+      "label": "Confirmo que recebi e li as Condicoes Gerais e Particulares",
+      "validate": {
+        "required": true
+      },
+      "id": "Chk_Cg",
+      "layout": {
+        "row": "row_3",
+        "columns": null
+      }
+    },
+    {
+      "type": "checkbox",
+      "key": "confirmacaoLeituraFti",
+      "label": "Confirmo que recebi a Ficha Tecnica Informativa",
+      "validate": {
+        "required": true
+      },
+      "id": "Chk_Fti",
+      "layout": {
+        "row": "row_4",
+        "columns": null
+      }
+    },
+    {
+      "type": "radio",
+      "key": "podeAssinarRadio",
+      "label": "Sabe e pode assinar?",
+      "validate": {
+        "required": true
+      },
+      "values": [
+        {
+          "label": "Sim",
+          "value": "SIM"
+        },
+        {
+          "label": "Nao sei ou nao posso assinar",
+          "value": "NAO"
+        }
+      ],
+      "id": "Rad_Assinar",
+      "layout": {
+        "row": "row_5",
+        "columns": null
+      }
+    }
+  ],
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Banking Hub",
+    "version": "0.1.0"
+  },
+  "schemaVersion": 18,
+  "id": "form-confirmar-leitura",
+  "type": "default"
+}

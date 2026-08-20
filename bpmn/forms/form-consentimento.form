@@ -1,0 +1,59 @@
+{
+  "components": [
+    {
+      "type": "text",
+      "text": "### Tratamento de dados pessoais\n\nPara abrir a conta, a instituicao precisa de recolher e conservar os seus dados de identificacao. Os registos sao conservados por, no minimo, 10 anos, conforme exigido pelo Aviso n.o 1/23 do Banco Nacional de Angola.",
+      "id": "Txt_Consent",
+      "layout": {
+        "row": "row_1",
+        "columns": null
+      }
+    },
+    {
+      "type": "checkbox",
+      "key": "consentimentoDados",
+      "label": "Consinto o tratamento dos meus dados pessoais para a finalidade de abertura e manutencao de conta",
+      "validate": {
+        "required": true
+      },
+      "id": "Chk_Consent",
+      "layout": {
+        "row": "row_2",
+        "columns": null
+      }
+    },
+    {
+      "type": "checkbox",
+      "key": "consentimentoBiometria",
+      "label": "Consinto a recolha de dados biometricos para verificacao da minha identidade",
+      "validate": {
+        "required": true
+      },
+      "id": "Chk_Bio",
+      "layout": {
+        "row": "row_3",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "versaoPoliticaPrivacidade",
+      "label": "Versao da politica de privacidade",
+      "readonly": true,
+      "id": "Txt_Versao",
+      "layout": {
+        "row": "row_4",
+        "columns": null
+      }
+    }
+  ],
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Banking Hub",
+    "version": "0.1.0"
+  },
+  "schemaVersion": 18,
+  "id": "form-consentimento",
+  "type": "default"
+}

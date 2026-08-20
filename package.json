@@ -1,0 +1,15 @@
+{
+  "name": "banking-hub-tools",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Ferramentas de validacao do Banking Hub. Os formularios Camunda validam-se contra o esquema oficial bpmn-io, que so existe em JavaScript — nao ha equivalente Java. O backend continua a ser Maven; este manifesto cobre apenas tooling.",
+  "scripts": {
+    "validar:forms": "node tools/validar-forms.cjs",
+    "validar:bpmn": "c8ctl bpmn lint bpmn/to-be/*.bpmn"
+  },
+  "devDependencies": {
+    "@bpmn-io/form-json-schema": "^1.18.0",
+    "ajv": "^8.20.0",
+    "ajv-errors": "^3.0.0"
+  }
+}

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" id="Definitions_cobertura_condicoes_gerais" name="Cobertura das Condicoes Gerais" namespace="http://camunda.org/schema/1.0/dmn">
+  <!--
+    Art. 5.o n.o 2 do Aviso n.o 1/23: as condicoes gerais de abertura de conta
+    devem conter, no minimo, informacao sobre os treze temas das alineas a) a
+    m).
+
+    CG_A  Regime de titularidade de conta bancaria
+    CG_B  Meios de comunicacao entre a instituicao e o cliente
+    CG_C  Condicoes de movimentacao das contas
+    CG_D  Meios de movimentacao das contas
+    CG_E  Condicoes dos lancamentos a debito e a credito
+    CG_F  Tratamento das instrucoes dos clientes e dos erros no processamento
+    CG_G  Compensacao de creditos
+    CG_H  Dever de comunicacao pelo cliente de alteracoes dos seus elementos de identificacao
+    CG_I  Tratamento de contas sem movimentos
+    CG_J  Tratamento de dados pessoais
+    CG_K  Termos, condicoes e procedimentos de encerramento de contas
+    CG_L  Condicoes gerais de prestacao de servicos de pagamento
+    CG_M  Dever de informar o cliente de alteracoes as condicoes e os prazos
+
+    Expressao literal em vez de tabela: a verificacao e sobre uma lista, e uma
+    tabela de decisao obrigaria a 13 linhas para expressar uma unica regra.
+
+    Nota de FEEL: nao usar a variavel implicita "item" de um filtro dentro de
+    uma chamada de funcao — obrigatorios[not(list contains(presentes, item))]
+    devolve lista vazia sem erro nem aviso, o que faria toda a minuta passar
+    como conforme. Verificado com c8ctl feel evaluate. Dai a formulacao com
+    "every ... satisfies" e com "for ... return".
+
+    Falha de cobertura suspende a instancia e gera incidente para a Direccao
+    Juridica. Nao e contornavel por operador (BR-INF-03).
+    Requisitos: REG-INF-03.
+  -->
+  <decision id="cobertura_condicoes_gerais" name="Cobertura dos treze temas minimos das Condicoes Gerais">
+    <variable id="var_cobertura" name="cobertura_condicoes_gerais" typeRef="context" />
+    <literalExpression id="le_cobertura">
+      <text>{
+  obrigatorios: ["CG_A","CG_B","CG_C","CG_D","CG_E","CG_F","CG_G","CG_H","CG_I","CG_J","CG_K","CG_L","CG_M"],
+  presentes: if temasPresentes = null then [] else temasPresentes,
+  temasEmFalta: (for t in obrigatorios return if list contains(presentes, t) then null else t)[item != null],
+  conforme: every t in obrigatorios satisfies list contains(presentes, t)
+}</text>
+    </literalExpression>
+  </decision>
+</definitions>
