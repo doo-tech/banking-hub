@@ -1,0 +1,181 @@
+{
+  "components": [
+    {
+      "type": "select",
+      "key": "tipoPessoa",
+      "label": "Tipo de titular",
+      "validate": {
+        "required": true
+      },
+      "values": [
+        {
+          "label": "Pessoa singular",
+          "value": "PESSOA_SINGULAR"
+        },
+        {
+          "label": "Menor (aberta por representante legal)",
+          "value": "MENOR"
+        },
+        {
+          "label": "Comerciante em nome individual",
+          "value": "COMERCIANTE_NOME_INDIVIDUAL"
+        },
+        {
+          "label": "Pessoa colectiva",
+          "value": "PESSOA_COLECTIVA"
+        },
+        {
+          "label": "Organizacao sem fins lucrativos",
+          "value": "ORGANIZACAO_SEM_FINS_LUCRATIVOS"
+        },
+        {
+          "label": "Instituicao de caridade, igreja ou local de culto",
+          "value": "INSTITUICAO_CARIDADE_SEM_PERSONALIDADE"
+        },
+        {
+          "label": "Condominio ou patrimonio autonomo",
+          "value": "CONDOMINIO_PATRIMONIO_AUTONOMO"
+        }
+      ],
+      "id": "Sel_Tipo",
+      "layout": {
+        "row": "row_1",
+        "columns": null
+      }
+    },
+    {
+      "type": "select",
+      "key": "residenciaFiscal",
+      "label": "Residencia",
+      "validate": {
+        "required": true
+      },
+      "values": [
+        {
+          "label": "Residente",
+          "value": "RESIDENTE"
+        },
+        {
+          "label": "Nao residente",
+          "value": "NAO_RESIDENTE"
+        }
+      ],
+      "id": "Sel_Res",
+      "layout": {
+        "row": "row_2",
+        "columns": null
+      }
+    },
+    {
+      "type": "select",
+      "key": "nacionalidade",
+      "label": "Nacionalidade",
+      "validate": {
+        "required": true
+      },
+      "values": [
+        {
+          "label": "Angolana",
+          "value": "AGO"
+        },
+        {
+          "label": "Outra",
+          "value": "OUTRA"
+        }
+      ],
+      "id": "Sel_Nac",
+      "layout": {
+        "row": "row_2",
+        "columns": null
+      }
+    },
+    {
+      "type": "select",
+      "key": "moeda",
+      "label": "Moeda da conta",
+      "validate": {
+        "required": true
+      },
+      "values": [
+        {
+          "label": "Kwanza (AOA)",
+          "value": "AOA"
+        },
+        {
+          "label": "Dolar americano (USD)",
+          "value": "USD"
+        },
+        {
+          "label": "Euro (EUR)",
+          "value": "EUR"
+        }
+      ],
+      "id": "Sel_Moeda",
+      "layout": {
+        "row": "row_3",
+        "columns": null
+      }
+    },
+    {
+      "type": "select",
+      "key": "motivoAbertura",
+      "label": "Motivo da abertura da conta",
+      "validate": {
+        "required": true
+      },
+      "values": [
+        {
+          "label": "Recebimento de salario",
+          "value": "SALARIO"
+        },
+        {
+          "label": "Poupanca",
+          "value": "POUPANCA"
+        },
+        {
+          "label": "Actividade comercial",
+          "value": "ACTIVIDADE_COMERCIAL"
+        },
+        {
+          "label": "Recebimento de remessas",
+          "value": "REMESSAS"
+        },
+        {
+          "label": "Pagamentos e servicos",
+          "value": "PAGAMENTOS"
+        },
+        {
+          "label": "Outro",
+          "value": "OUTRO"
+        }
+      ],
+      "id": "Sel_Motivo",
+      "layout": {
+        "row": "row_4",
+        "columns": null
+      }
+    },
+    {
+      "type": "textarea",
+      "key": "motivoAberturaDetalhe",
+      "label": "Detalhe do motivo",
+      "conditional": {
+        "hide": "=motivoAbertura != \"OUTRO\""
+      },
+      "id": "Txa_Motivo",
+      "layout": {
+        "row": "row_5",
+        "columns": null
+      }
+    }
+  ],
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Banking Hub",
+    "version": "0.1.0"
+  },
+  "schemaVersion": 18,
+  "id": "form-declarar-perfil",
+  "type": "default"
+}

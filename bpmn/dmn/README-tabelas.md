@@ -1,10 +1,55 @@
-# Especificação das Tabelas de Decisão
+# Tabelas de Decisão
 
-Conteúdo acordado na Fase 0. Implementado em DMN na actividade `1.8` do roteiro.
+**Estado:** seis decisões implementadas e validadas; três especificadas e ainda não implementadas.
+
+| Decisão | Ficheiro | Política | Estado |
+|---|---|---|---|
+| `elegibilidade` | `elegibilidade.dmn` | FIRST | Implementada |
+| `requisitos_documentais` | `requisitos_documentais.dmn` | COLLECT | Implementada — 19 regras |
+| `pontuacao_risco` + `risco_bcft` | `risco_bcft.dmn` | COLLECT/SUM + expressão literal | Implementada |
+| `nivel_diligencia` | `nivel_diligencia.dmn` | FIRST | Implementada |
+| `entrega_fundos` | `entrega_fundos.dmn` | FIRST | Implementada |
+| `cobertura_condicoes_gerais` | `cobertura_condicoes_gerais.dmn` | Expressão literal | Implementada |
+| `ubo_threshold` | — | COLLECT | Especificada |
+| `pep_categoria` | — | FIRST | Especificada |
+| `limites_menor` | — | UNIQUE | Especificada |
+
+As três em falta são invocadas pelos subprocessos condicionais de pessoa colectiva e de conta de menor, que não fazem parte da primeira fatia executável.
+
+## Duas restrições da plataforma que condicionaram o desenho
+
+**Identificadores só admitem alfanuméricos e `_`.** O hífen é operador FEEL. Um `decisionId` com hífen resolve para `null` em execução — sem erro de implantação e sem aviso de linter. Por isso os identificadores usam `_`, apesar de os ficheiros de documentação anteriores usarem `-`.
+
+**`PRIORITY` e `OUTPUT ORDER` não são suportadas pelo Camunda 8.** Onde a especificação inicial previa `Priority` — em `nivel_diligencia` — usa-se `FIRST` com as regras ordenadas da mais restritiva para a menos. O efeito é o mesmo; a ordem passa a ser explícita na tabela em vez de derivada de prioridades declaradas.
+
+## Uma armadilha de FEEL encontrada e corrigida
+
+A variável implícita `item` de um filtro de lista **não resolve dentro de uma chamada de função**. Esta expressão parece correcta e está errada:
+
+```
+obrigatorios[not(list contains(presentes, item))]
+```
+
+Devolve lista vazia, sem erro e sem aviso. Aplicada à verificação dos 13 temas do Artigo 5.º n.º 2, faria **qualquer** minuta passar como conforme — um controlo de conformidade silenciosamente inoperante.
+
+A formulação correcta, verificada com `c8ctl feel evaluate`:
+
+```
+conforme:      every t in obrigatorios satisfies list contains(presentes, t)
+temasEmFalta:  (for t in obrigatorios return if list contains(presentes, t) then null else t)[item != null]
+```
+
+Testada com minuta completa (`conforme: true`), minuta sem `CG_G` e `CG_J` (aponta exactamente esses dois) e lista nula (falha em segurança).
 
 ---
 
-## `dmn-elegibilidade` — Unique
+## Especificação de referência
+
+Mantida abaixo. Onde divergir dos ficheiros implementados, prevalecem os ficheiros.
+
+---
+
+## `elegibilidade` — FIRST
 
 **Entradas:** `tipoPessoa`, `idade`, `residenciaFiscal`, `residenciaCambial`, `moeda`, `produto`, `canalOrigem`
 **Saídas:** `elegivel`, `perfilCliente`, `produtosAdmissiveis`, `motivoRecusa`
@@ -17,7 +62,7 @@ Conteúdo acordado na Fase 0. Implementado em DMN na actividade `1.8` do roteiro
 | 4 | `canalOrigem = TERCEIRO_MANDATADO` sem prova de mandato → não elegível | `REG-ABR-06` |
 | 5 | `residenciaFiscal = NAO_RESIDENTE` → `residenteFlag = false` propagado à conta | `REG-ABR-03` |
 
-## `dmn-requisitos-documentais` — Collect
+## `requisitos_documentais` — COLLECT
 
 **Entradas:** `perfilCliente`, `residencia`, `nacionalidade`, `menor`, `canalOrigem`
 **Saída:** colecção de `RequisitoDocumental`
@@ -41,7 +86,7 @@ Conteúdo acordado na Fase 0. Implementado em DMN na actividade `1.8` do roteiro
 | 15 | Todos | `DOC_EVIDENCIA_CG_CP`, `DOC_FICHA_TECNICA_INFORMATIVA` | `REG-INF-02`, `REG-INF-04` |
 | 16 | Menor ≥ 14 anos com pedido de cartão | `DOC_TERMO_RESPONSABILIDADE_CARTAO` | `REG-MEN-02` |
 
-## `dmn-ubo-threshold` — Collect
+## `ubo_threshold` — COLLECT *(especificada, não implementada)*
 
 **Entradas:** `percentagemCapital`, `percentagemDireitosVoto`, `cadeiaControlo`
 **Saídas:** `identificarComoTitularParticipacao`, `identificarComoBeneficiarioEfectivo`
@@ -55,14 +100,14 @@ Conteúdo acordado na Fase 0. Implementado em DMN na actividade `1.8` do roteiro
 
 > Limiar de 20% parametrizável **apenas** para valores inferiores (mais restritivos). Ver `BR-UBO-01`.
 
-## `dmn-pep-categoria` — First
+## `pep_categoria` — FIRST *(especificada, não implementada)*
 
 **Entradas:** `cargoDeclarado`, `relacaoFamiliar`, `relacaoSocietaria`
 **Saídas:** `categoriaPep`, `nivelExposicao`
 
 Cobre integralmente a taxonomia da nota 2 do Anexo I: `PEP_I_01`–`PEP_I_11` (altos cargos), `PEP_II_01`–`PEP_II_02` (família próxima), `PEP_III_01`–`PEP_III_02` (relações societárias ou comerciais). Ver `docs/01-regulatorio/02-anexo-i-ficha-e-documentos.md`.
 
-## `dmn-risco-bcft` — Collect (sum)
+## `risco_bcft` — COLLECT/SUM
 
 **Entradas:** `perfilCliente`, `residencia`, `estadoPep`, `resultadoSancoes`, `naturezaRendimento`, `montanteRendimento`, `motivoAbertura`, `canalOrigem`, `produto`, `moeda`
 **Saídas:** `pontuacao`, `nivelRisco`, `factores`
@@ -77,7 +122,7 @@ Cobre integralmente a taxonomia da nota 2 do Anexo I: `PEP_I_01`–`PEP_I_11` (a
 
 Pesos parametrizáveis por instituição. `factores` é obrigatório: uma pontuação sem factores não é explicável, e decisão automática inexplicável é inauditável (`BR-RSK-02`).
 
-## `dmn-nivel-diligencia` — Priority
+## `nivel_diligencia` — FIRST *(a especificação inicial dizia Priority, não suportada)*
 
 **Entradas:** `nivelRisco`, `estadoPep`, `produto`, `canalOrigem`
 **Saídas:** `nivelDiligencia`, `aprovacoesExigidas`
@@ -91,7 +136,7 @@ Pesos parametrizáveis por instituição. `factores` é obrigatório: uma pontua
 
 > `SIMPLIFICADA` reduz a **profundidade** da verificação; **nunca** dispensa campos mínimos do Anexo I (`BR-RSK-03`).
 
-## `dmn-entrega-fundos` — Unique
+## `entrega_fundos` — FIRST
 
 **Entradas:** `canalOrigem`, `meioEntrega`, `ordenanteIdentificado`, `instituicaoOrigemElegivel`, `ordenanteCoincideComTitular`
 **Saídas:** `decisao` (`ACEITAR` / `EXIGIR_JUSTIFICACAO` / `REJEITAR`), `motivo`
@@ -106,14 +151,14 @@ Pesos parametrizáveis por instituição. `factores` é obrigatório: uma pontua
 
 > A regra 4 aplica-se a todos os canais por decisão interpretativa registada em `ADR-0007`.
 
-## `dmn-cobertura-condicoes-gerais` — Unique
+## `cobertura_condicoes_gerais` — expressão literal
 
 **Entradas:** `versaoMinuta`, `temasPresentes`
 **Saídas:** `conforme`, `temasEmFalta`
 
 Verifica os 13 temas `CG-A` a `CG-M` do Art. 5.º n.º 2. Não conforme **suspende a instância** e gera incidente para a Direcção Jurídica; não é contornável por operador (`BR-INF-03`).
 
-## `dmn-limites-menor` — Unique
+## `limites_menor` — UNIQUE *(especificada, não implementada)*
 
 **Entradas:** `idade`, `produtoSolicitado`, `termoResponsabilidadePresente`
 **Saídas:** `cartaoPermitido`, `limiteDiarioMaximo`, `produtosVedados`

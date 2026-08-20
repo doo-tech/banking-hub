@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" id="Definitions_entrega_fundos" name="Entrega inicial de fundos" namespace="http://camunda.org/schema/1.0/dmn">
+  <!--
+    Aviso n.o 1/23:
+      Art. 4.o n.o 4 — no canal nao presencial, a entrega inicial deve ser
+        efectuada por transferencia bancaria que permita a identificacao do
+        ordenante, com origem em conta aberta junto de instituicao que
+        comprovadamente aplique medidas de identificacao e diligencia.
+      Art. 3.o n.o 7 — entrega com origem em conta titulada por pessoa
+        diferente do cliente apenas deve ser aceite mediante justificacao
+        credivel.
+
+    A regra do ordenante diferente do titular aplica-se a TODOS os canais, e
+    nao apenas ao remoto. A remissao do Art. 3.o n.o 7 nao fecha — aponta para
+    o "numero anterior", que trata de entidades terceiras e nao de fundos. A
+    interpretacao adoptada, a fundamentacao e as alternativas rejeitadas estao
+    em docs/03-arquitectura/adr/ADR-0007. Consulta formal ao BNA pendente, ao
+    abrigo do Art. 16.o.
+
+    Politica FIRST: as recusas do canal remoto avaliam-se primeiro.
+    Requisitos: REG-FUN-01, REG-FUN-02, REG-FUN-03. Regras: BR-FUN-01 a BR-FUN-03.
+  -->
+  <decision id="entrega_fundos" name="Decisao sobre a entrega inicial de fundos">
+    <decisionTable id="dt_fundos" hitPolicy="FIRST">
+      <input id="inf_canal" label="Canal de origem">
+        <inputExpression id="ief_canal" typeRef="string">
+          <text>canalOrigem</text>
+        </inputExpression>
+      </input>
+      <input id="inf_meio" label="Meio da entrega">
+        <inputExpression id="ief_meio" typeRef="string">
+          <text>entrega.meio</text>
+        </inputExpression>
+      </input>
+      <input id="inf_ordIdent" label="Ordenante identificado">
+        <inputExpression id="ief_ordIdent" typeRef="boolean">
+          <text>entrega.ordenanteIdentificado</text>
+        </inputExpression>
+      </input>
+      <input id="inf_instElegivel" label="Instituicao de origem com diligencia comprovada">
+        <inputExpression id="ief_instElegivel" typeRef="boolean">
+          <text>entrega.instituicaoOrigemElegivel</text>
+        </inputExpression>
+      </input>
+      <input id="inf_coincide" label="Ordenante coincide com o titular">
+        <inputExpression id="ief_coincide" typeRef="boolean">
+          <text>entrega.ordenanteCoincideComTitular</text>
+        </inputExpression>
+      </input>
+      <output id="outf_decisao" name="decisao" label="Decisao" typeRef="string" />
+      <output id="outf_motivo" name="motivo" label="Motivo" typeRef="string" />
+      <output id="outf_base" name="baseLegal" label="Base legal" typeRef="string" />
+      <rule id="rf_meio">
+        <description>Canal remoto: apenas transferencia bancaria. Numerario ou outro meio e rejeitado.</description>
+        <inputEntry id="irf1_1"><text>"REMOTO"</text></inputEntry>
+        <inputEntry id="irf1_2"><text>not("TRANSFERENCIA_BANCARIA")</text></inputEntry>
+        <inputEntry id="irf1_3"><text>-</text></inputEntry>
+        <inputEntry id="irf1_4"><text>-</text></inputEntry>
+        <inputEntry id="irf1_5"><text>-</text></inputEntry>
+        <outputEntry id="orf1_1"><text>"REJEITAR"</text></outputEntry>
+        <outputEntry id="orf1_2"><text>"Na abertura sem presenca fisica, a entrega inicial de fundos tem de ser efectuada por transferencia bancaria."</text></outputEntry>
+        <outputEntry id="orf1_3"><text>"Aviso n.o 1/23, Art. 4.o n.o 4"</text></outputEntry>
+      </rule>
+      <rule id="rf_ordenante">
+        <description>Canal remoto: a transferencia tem de permitir a identificacao do ordenante</description>
+        <inputEntry id="irf2_1"><text>"REMOTO"</text></inputEntry>
+        <inputEntry id="irf2_2"><text>-</text></inputEntry>
+        <inputEntry id="irf2_3"><text>false</text></inputEntry>
+        <inputEntry id="irf2_4"><text>-</text></inputEntry>
+        <inputEntry id="irf2_5"><text>-</text></inputEntry>
+        <outputEntry id="orf2_1"><text>"REJEITAR"</text></outputEntry>
+        <outputEntry id="orf2_2"><text>"A transferencia nao permite identificar o ordenante."</text></outputEntry>
+        <outputEntry id="orf2_3"><text>"Aviso n.o 1/23, Art. 4.o n.o 4"</text></outputEntry>
+      </rule>
+      <rule id="rf_instituicao">
+        <description>Canal remoto: a conta de origem tem de estar aberta junto de instituicao com diligencia comprovada</description>
+        <inputEntry id="irf3_1"><text>"REMOTO"</text></inputEntry>
+        <inputEntry id="irf3_2"><text>-</text></inputEntry>
+        <inputEntry id="irf3_3"><text>-</text></inputEntry>
+        <inputEntry id="irf3_4"><text>false</text></inputEntry>
+        <inputEntry id="irf3_5"><text>-</text></inputEntry>
+        <outputEntry id="orf3_1"><text>"REJEITAR"</text></outputEntry>
+        <outputEntry id="orf3_2"><text>"Nao existe afericao documentada de que a instituicao de origem aplique medidas de identificacao e diligencia."</text></outputEntry>
+        <outputEntry id="orf3_3"><text>"Aviso n.o 1/23, Art. 4.o n.o 4"</text></outputEntry>
+      </rule>
+      <rule id="rf_terceiro">
+        <description>Qualquer canal: ordenante diferente do titular exige justificacao credivel, avaliada por decisao humana. Ver ADR-0007.</description>
+        <inputEntry id="irf4_1"><text>-</text></inputEntry>
+        <inputEntry id="irf4_2"><text>-</text></inputEntry>
+        <inputEntry id="irf4_3"><text>-</text></inputEntry>
+        <inputEntry id="irf4_4"><text>-</text></inputEntry>
+        <inputEntry id="irf4_5"><text>false</text></inputEntry>
+        <outputEntry id="orf4_1"><text>"EXIGIR_JUSTIFICACAO"</text></outputEntry>
+        <outputEntry id="orf4_2"><text>"Os fundos tem origem em conta titulada por pessoa diferente do cliente."</text></outputEntry>
+        <outputEntry id="orf4_3"><text>"Aviso n.o 1/23, Art. 3.o n.o 7"</text></outputEntry>
+      </rule>
+      <rule id="rf_aceitar">
+        <description>Restantes casos: aceitar</description>
+        <inputEntry id="irf5_1"><text>-</text></inputEntry>
+        <inputEntry id="irf5_2"><text>-</text></inputEntry>
+        <inputEntry id="irf5_3"><text>-</text></inputEntry>
+        <inputEntry id="irf5_4"><text>-</text></inputEntry>
+        <inputEntry id="irf5_5"><text>-</text></inputEntry>
+        <outputEntry id="orf5_1"><text>"ACEITAR"</text></outputEntry>
+        <outputEntry id="orf5_2"><text>null</text></outputEntry>
+        <outputEntry id="orf5_3"><text>null</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

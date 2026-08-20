@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" id="Definitions_requisitos_documentais" name="Requisitos documentais" namespace="http://camunda.org/schema/1.0/dmn">
+  <!--
+    Anexo I do Aviso n.o 1/23, seccao II — "Documentos que devem ser
+    solicitados ao cliente". As informacoes prestadas devem ser verificadas
+    mediante a apresentacao dos documentos aqui listados.
+
+    Politica COLLECT: todas as regras que corresponderem contribuem uma linha
+    para a checklist. O resultado e uma lista de contextos {codigo, verifica,
+    obrigatorio}.
+
+    Requisitos: REG-KYC-10, REG-KYC-11, REG-KYC-12, REG-FUN-01, REG-INF-02,
+    REG-INF-04, REG-MEN-02. Regras: BR-FIC-05, BR-FIC-06, BR-FIC-11, BR-FIC-12.
+  -->
+  <decision id="requisitos_documentais" name="Requisitos documentais por perfil, residencia e canal">
+    <decisionTable id="dt_requisitos" hitPolicy="COLLECT">
+      <input id="in_perfil" label="Perfil de cliente">
+        <inputExpression id="ie_perfil" typeRef="string">
+          <text>perfilCliente</text>
+        </inputExpression>
+      </input>
+      <input id="in_residencia" label="Residencia">
+        <inputExpression id="ie_residencia" typeRef="string">
+          <text>residenciaFiscal</text>
+        </inputExpression>
+      </input>
+      <input id="in_nacionalidade" label="Nacionalidade">
+        <inputExpression id="ie_nacionalidade" typeRef="string">
+          <text>nacionalidade</text>
+        </inputExpression>
+      </input>
+      <input id="in_canal" label="Canal de origem">
+        <inputExpression id="ie_canal" typeRef="string">
+          <text>canalOrigem</text>
+        </inputExpression>
+      </input>
+      <output id="out_codigo" name="codigo" label="Tipo documental" typeRef="string" />
+      <output id="out_verifica" name="verifica" label="Informacao que verifica" typeRef="string" />
+      <rule id="r_01">
+        <description>Pessoa singular residente: bilhete de identidade ou cartao de residente com fotografia, nome, data de nascimento e nacionalidade</description>
+        <inputEntry id="ier1_1"><text>"PESSOA_SINGULAR", "COMERCIANTE_NOME_INDIVIDUAL"</text></inputEntry>
+        <inputEntry id="ier1_2"><text>"RESIDENTE"</text></inputEntry>
+        <inputEntry id="ier1_3"><text>-</text></inputEntry>
+        <inputEntry id="ier1_4"><text>-</text></inputEntry>
+        <outputEntry id="oer1_1"><text>"DOC_BI_OU_CARTAO_RESIDENTE"</text></outputEntry>
+        <outputEntry id="oer1_2"><text>"Nome completo, data de nascimento e nacionalidade"</text></outputEntry>
+      </rule>
+      <rule id="r_02">
+        <description>Pessoa singular nao residente de nacionalidade nao angolana: passaporte</description>
+        <inputEntry id="ier2_1"><text>"PESSOA_SINGULAR", "COMERCIANTE_NOME_INDIVIDUAL"</text></inputEntry>
+        <inputEntry id="ier2_2"><text>"NAO_RESIDENTE"</text></inputEntry>
+        <inputEntry id="ier2_3"><text>not("AGO")</text></inputEntry>
+        <inputEntry id="ier2_4"><text>-</text></inputEntry>
+        <outputEntry id="oer2_1"><text>"DOC_PASSAPORTE"</text></outputEntry>
+        <outputEntry id="oer2_2"><text>"Nome completo, data de nascimento e nacionalidade"</text></outputEntry>
+      </rule>
+      <rule id="r_03">
+        <description>Excepcao do Anexo I: nao residente de nacionalidade angolana pode identificar-se por bilhete de identidade</description>
+        <inputEntry id="ier3_1"><text>"PESSOA_SINGULAR", "COMERCIANTE_NOME_INDIVIDUAL"</text></inputEntry>
+        <inputEntry id="ier3_2"><text>"NAO_RESIDENTE"</text></inputEntry>
+        <inputEntry id="ier3_3"><text>"AGO"</text></inputEntry>
+        <inputEntry id="ier3_4"><text>-</text></inputEntry>
+        <outputEntry id="oer3_1"><text>"DOC_BI_OU_PASSAPORTE"</text></outputEntry>
+        <outputEntry id="oer3_2"><text>"Nome completo, data de nascimento e nacionalidade"</text></outputEntry>
+      </rule>
+      <rule id="r_04">
+        <description>Menor residente que, em razao da idade, nao possui os documentos anteriores: cedula pessoal</description>
+        <inputEntry id="ier4_1"><text>"MENOR"</text></inputEntry>
+        <inputEntry id="ier4_2"><text>"RESIDENTE"</text></inputEntry>
+        <inputEntry id="ier4_3"><text>-</text></inputEntry>
+        <inputEntry id="ier4_4"><text>-</text></inputEntry>
+        <outputEntry id="oer4_1"><text>"DOC_CEDULA_PESSOAL"</text></outputEntry>
+        <outputEntry id="oer4_2"><text>"Identificacao do menor"</text></outputEntry>
+      </rule>
+      <rule id="r_05">
+        <description>Menor nao residente: documento publico equivalente, apresentado por quem demonstre legitimidade como representante legal</description>
+        <inputEntry id="ier5_1"><text>"MENOR"</text></inputEntry>
+        <inputEntry id="ier5_2"><text>"NAO_RESIDENTE"</text></inputEntry>
+        <inputEntry id="ier5_3"><text>-</text></inputEntry>
+        <inputEntry id="ier5_4"><text>-</text></inputEntry>
+        <outputEntry id="oer5_1"><text>"DOC_PUBLICO_EQUIV_MENOR"</text></outputEntry>
+        <outputEntry id="oer5_2"><text>"Identificacao do menor"</text></outputEntry>
+      </rule>
+      <rule id="r_06">
+        <description>Conta de menor: identidade do representante legal, verificada no inicio da relacao de negocio</description>
+        <inputEntry id="ier6_1"><text>"MENOR"</text></inputEntry>
+        <inputEntry id="ier6_2"><text>-</text></inputEntry>
+        <inputEntry id="ier6_3"><text>-</text></inputEntry>
+        <inputEntry id="ier6_4"><text>-</text></inputEntry>
+        <outputEntry id="oer6_1"><text>"DOC_IDENTIDADE_REPRESENTANTE"</text></outputEntry>
+        <outputEntry id="oer6_2"><text>"Identidade do representante legal"</text></outputEntry>
+      </rule>
+      <rule id="r_07">
+        <description>Todos os perfis: cartao de identificacao fiscal ou equivalente emitido pela AGT</description>
+        <inputEntry id="ier7_1"><text>-</text></inputEntry>
+        <inputEntry id="ier7_2"><text>-</text></inputEntry>
+        <inputEntry id="ier7_3"><text>-</text></inputEntry>
+        <inputEntry id="ier7_4"><text>-</text></inputEntry>
+        <outputEntry id="oer7_1"><text>"DOC_CARTAO_NIF"</text></outputEntry>
+        <outputEntry id="oer7_2"><text>"Numero de Identificacao Fiscal"</text></outputEntry>
+      </rule>
+      <rule id="r_08">
+        <description>Morada habitual e ponto de referencia: documento, meio ou diligencia valido, idoneo e suficiente</description>
+        <inputEntry id="ier8_1"><text>"PESSOA_SINGULAR", "COMERCIANTE_NOME_INDIVIDUAL", "MENOR"</text></inputEntry>
+        <inputEntry id="ier8_2"><text>-</text></inputEntry>
+        <inputEntry id="ier8_3"><text>-</text></inputEntry>
+        <inputEntry id="ier8_4"><text>-</text></inputEntry>
+        <outputEntry id="oer8_1"><text>"DOC_COMPROV_MORADA"</text></outputEntry>
+        <outputEntry id="oer8_2"><text>"Morada completa da residencia habitual e ponto de referencia"</text></outputEntry>
+      </rule>
+      <rule id="r_09">
+        <description>Profissao, ocupacao e entidade patronal: documento, meio ou diligencia valido, idoneo e suficiente</description>
+        <inputEntry id="ier9_1"><text>"PESSOA_SINGULAR", "COMERCIANTE_NOME_INDIVIDUAL", "MENOR"</text></inputEntry>
+        <inputEntry id="ier9_2"><text>-</text></inputEntry>
+        <inputEntry id="ier9_3"><text>-</text></inputEntry>
+        <inputEntry id="ier9_4"><text>-</text></inputEntry>
+        <outputEntry id="oer9_1"><text>"DOC_COMPROV_PROFISSAO"</text></outputEntry>
+        <outputEntry id="oer9_2"><text>"Profissao, entidade patronal e natureza do rendimento"</text></outputEntry>
+      </rule>
+      <rule id="r_10">
+        <description>Comerciante em nome individual: relatorio de sustentabilidade — Anexo I, I.1.1</description>
+        <inputEntry id="ier10_1"><text>"COMERCIANTE_NOME_INDIVIDUAL"</text></inputEntry>
+        <inputEntry id="ier10_2"><text>-</text></inputEntry>
+        <inputEntry id="ier10_3"><text>-</text></inputEntry>
+        <inputEntry id="ier10_4"><text>-</text></inputEntry>
+        <outputEntry id="oer10_1"><text>"DOC_RELATORIO_SUSTENTABILIDADE"</text></outputEntry>
+        <outputEntry id="oer10_2"><text>"Caracterizacao da actividade"</text></outputEntry>
+      </rule>
+      <rule id="r_11">
+        <description>Pessoa colectiva residente: certidao do registo comercial, exemplar do Diario da Republica com os estatutos, ou certidao notarial da constituicao</description>
+        <inputEntry id="ier11_1"><text>"PESSOA_COLECTIVA", "ORGANIZACAO_SEM_FINS_LUCRATIVOS", "CONDOMINIO_PATRIMONIO_AUTONOMO"</text></inputEntry>
+        <inputEntry id="ier11_2"><text>"RESIDENTE"</text></inputEntry>
+        <inputEntry id="ier11_3"><text>-</text></inputEntry>
+        <inputEntry id="ier11_4"><text>-</text></inputEntry>
+        <outputEntry id="oer11_1"><text>"DOC_REGISTO_COMERCIAL_NACIONAL"</text></outputEntry>
+        <outputEntry id="oer11_2"><text>"Denominacao social completa"</text></outputEntry>
+      </rule>
+      <rule id="r_12">
+        <description>Pessoa colectiva nao residente: registo certificado no pais de residencia E autenticado pela representacao consular de Angola — condicoes cumulativas</description>
+        <inputEntry id="ier12_1"><text>"PESSOA_COLECTIVA", "ORGANIZACAO_SEM_FINS_LUCRATIVOS", "CONDOMINIO_PATRIMONIO_AUTONOMO"</text></inputEntry>
+        <inputEntry id="ier12_2"><text>"NAO_RESIDENTE"</text></inputEntry>
+        <inputEntry id="ier12_3"><text>-</text></inputEntry>
+        <inputEntry id="ier12_4"><text>-</text></inputEntry>
+        <outputEntry id="oer12_1"><text>"DOC_REG_COMERCIAL_ESTRANGEIRO"</text></outputEntry>
+        <outputEntry id="oer12_2"><text>"Denominacao social, com certificacao de origem e autenticacao consular"</text></outputEntry>
+      </rule>
+      <rule id="r_13">
+        <description>Pessoa colectiva: acta da Assembleia-Geral Constituinte e acta de alteracao a estrutura accionista</description>
+        <inputEntry id="ier13_1"><text>"PESSOA_COLECTIVA", "ORGANIZACAO_SEM_FINS_LUCRATIVOS", "CONDOMINIO_PATRIMONIO_AUTONOMO"</text></inputEntry>
+        <inputEntry id="ier13_2"><text>-</text></inputEntry>
+        <inputEntry id="ier13_3"><text>-</text></inputEntry>
+        <inputEntry id="ier13_4"><text>-</text></inputEntry>
+        <outputEntry id="oer13_1"><text>"DOC_ACTAS_SOCIETARIAS"</text></outputEntry>
+        <outputEntry id="oer13_2"><text>"Titulares de participacoes iguais ou superiores a 20%"</text></outputEntry>
+      </rule>
+      <rule id="r_14">
+        <description>Pessoa colectiva: declaracao escrita da propria pessoa colectiva com orgaos de gestao, procuradores e representantes</description>
+        <inputEntry id="ier14_1"><text>"PESSOA_COLECTIVA", "ORGANIZACAO_SEM_FINS_LUCRATIVOS", "CONDOMINIO_PATRIMONIO_AUTONOMO"</text></inputEntry>
+        <inputEntry id="ier14_2"><text>-</text></inputEntry>
+        <inputEntry id="ier14_3"><text>-</text></inputEntry>
+        <inputEntry id="ier14_4"><text>-</text></inputEntry>
+        <outputEntry id="oer14_1"><text>"DOC_DECLARACAO_ORGAOS_GESTAO"</text></outputEntry>
+        <outputEntry id="oer14_2"><text>"Identidade dos procuradores e respectivo mandato"</text></outputEntry>
+      </rule>
+      <rule id="r_15">
+        <description>Organizacao sem fins lucrativos: comprovativo da natureza dos fundos, gastos e beneficiarios — Anexo I, I.2.1</description>
+        <inputEntry id="ier15_1"><text>"ORGANIZACAO_SEM_FINS_LUCRATIVOS"</text></inputEntry>
+        <inputEntry id="ier15_2"><text>-</text></inputEntry>
+        <inputEntry id="ier15_3"><text>-</text></inputEntry>
+        <inputEntry id="ier15_4"><text>-</text></inputEntry>
+        <outputEntry id="oer15_1"><text>"DOC_NATUREZA_FUNDOS_OSFL"</text></outputEntry>
+        <outputEntry id="oer15_2"><text>"Natureza das doacoes, dos fundos, dos gastos e dos beneficiarios"</text></outputEntry>
+      </rule>
+      <rule id="r_16">
+        <description>Instituicao de caridade sem personalidade juridica, igreja ou local de culto: documento comprovativo da legalizacao pelas autoridades estatais</description>
+        <inputEntry id="ier16_1"><text>"INSTITUICAO_CARIDADE_SEM_PERSONALIDADE"</text></inputEntry>
+        <inputEntry id="ier16_2"><text>-</text></inputEntry>
+        <inputEntry id="ier16_3"><text>-</text></inputEntry>
+        <inputEntry id="ier16_4"><text>-</text></inputEntry>
+        <outputEntry id="oer16_1"><text>"DOC_LEGALIZACAO_ESTATAL"</text></outputEntry>
+        <outputEntry id="oer16_2"><text>"Legalizacao pelas autoridades estatais"</text></outputEntry>
+      </rule>
+      <rule id="r_17">
+        <description>Canal nao presencial: comprovativo de transferencia da entrega inicial com identificacao do ordenante — Art. 4.o n.o 4</description>
+        <inputEntry id="ier17_1"><text>-</text></inputEntry>
+        <inputEntry id="ier17_2"><text>-</text></inputEntry>
+        <inputEntry id="ier17_3"><text>-</text></inputEntry>
+        <inputEntry id="ier17_4"><text>"REMOTO"</text></inputEntry>
+        <outputEntry id="oer17_1"><text>"DOC_COMPROV_TRANSFERENCIA_INICIAL"</text></outputEntry>
+        <outputEntry id="oer17_2"><text>"Entrega inicial de fundos e identificacao do ordenante"</text></outputEntry>
+      </rule>
+      <rule id="r_18">
+        <description>Todos: evidencia de disponibilizacao das Condicoes Gerais e Particulares — Art. 5.o n.o 1</description>
+        <inputEntry id="ier18_1"><text>-</text></inputEntry>
+        <inputEntry id="ier18_2"><text>-</text></inputEntry>
+        <inputEntry id="ier18_3"><text>-</text></inputEntry>
+        <inputEntry id="ier18_4"><text>-</text></inputEntry>
+        <outputEntry id="oer18_1"><text>"DOC_EVIDENCIA_CG_CP"</text></outputEntry>
+        <outputEntry id="oer18_2"><text>"Disponibilizacao previa das condicoes contratuais"</text></outputEntry>
+      </rule>
+      <rule id="r_19">
+        <description>Todos: Ficha Tecnica Informativa — Art. 5.o n.o 3</description>
+        <inputEntry id="ier19_1"><text>-</text></inputEntry>
+        <inputEntry id="ier19_2"><text>-</text></inputEntry>
+        <inputEntry id="ier19_3"><text>-</text></inputEntry>
+        <inputEntry id="ier19_4"><text>-</text></inputEntry>
+        <outputEntry id="oer19_1"><text>"DOC_FICHA_TECNICA_INFORMATIVA"</text></outputEntry>
+        <outputEntry id="oer19_2"><text>"Informacao pre-contratual sobre o deposito"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

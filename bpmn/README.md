@@ -14,24 +14,16 @@ bpmn/
 
 ## Modelos
 
-| Ficheiro | Nível | Documento de referência |
+| Ficheiro | Nível | Estado |
 |---|---|---|
-| `as-is/PRC-01-abertura-conta-as-is.bpmn` | Documental | `docs/02-bpm/03-as-is-abertura-de-conta.md` |
-| `to-be/PRC-01-abertura-conta.bpmn` | **Executável** | `docs/02-bpm/04-to-be-abertura-de-conta.md` |
+| `to-be/PRC-01-abertura-conta.bpmn` | **Executável** | 67 elementos, 71 fluxos. `c8ctl bpmn lint` sem erros nem avisos |
+| `forms/*.form` | — | 14 formulários, validados contra o esquema oficial |
+| `dmn/*.dmn` | **Executável** | 6 de 9 decisões, `dmnlint` limpo, FEEL verificado |
+| `as-is/` | Documental | Por produzir — ver issue de diagramas descritivos |
 
 ## Decisões DMN
 
-| Ficheiro | Decisão | Política de acerto |
-|---|---|---|
-| `dmn/elegibilidade.dmn` | Elegibilidade e perfil de cliente | Unique |
-| `dmn/requisitos-documentais.dmn` | Checklist documental por perfil × residência × canal | Collect |
-| `dmn/ubo-threshold.dmn` | Limiar de 20% e identificação de beneficiário efectivo | Collect |
-| `dmn/pep-categoria.dmn` | Categoria PEP (taxonomia `PEP_I/II/III`) | First |
-| `dmn/risco-bcft.dmn` | Pontuação de risco BC/FT/FPADM | Collect (sum) |
-| `dmn/nivel-diligencia.dmn` | Nível de diligência e aprovações exigidas | Priority |
-| `dmn/entrega-fundos.dmn` | Aceitação da entrega inicial de fundos | Unique |
-| `dmn/cobertura-condicoes-gerais.dmn` | Cobertura dos 13 temas do Art. 5.º n.º 2 | Unique |
-| `dmn/limites-menor.dmn` | Cartão de débito e limites de conta de menor | Unique |
+Ver `dmn/README-tabelas.md` para o estado, as políticas de acerto e as duas restrições da plataforma que condicionaram o desenho.
 
 ## Convenções obrigatórias
 
@@ -44,8 +36,12 @@ bpmn/
 | Temporizadores | Obrigatórios em todo estado não terminal (`INV-10`) |
 | Compensação | Todo passo com efeito externo declara *compensation handler* (ADR-0010) |
 
-## Estado — Fase 0
+## Estado
 
-Os ficheiros nesta pasta são **esqueletos anotados**: declaram a estrutura, os tipos de tarefa, os códigos de erro e as anotações `REG-*` acordadas na fase conceptual. Os modelos executáveis completos são produzidos na actividade `1.8` do roteiro, após o congelamento do TO-BE (marco M2), e validados por Compliance antes de qualquer implementação.
+O modelo executável e as seis decisões que ele invoca estão implementados e verificados estruturalmente.
 
-Modelar antes de M2 seria modelar sobre um AS-IS não validado — exactamente o erro que o protocolo de validação existe para evitar.
+**O que está verificado:** estrutura BPMN (linter sem erros nem avisos), estrutura DMN (`dmnlint` limpo nos seis ficheiros), esquema dos formulários (validador oficial), correspondência nos dois sentidos entre os `formId` do BPMN e os ficheiros em disco, e as expressões FEEL críticas avaliadas com `c8ctl feel evaluate`.
+
+**O que não está verificado:** execução real. Nenhuma instância correu num motor. A validação comportamental — testes de processo cobrindo todos os ramos e os invariantes do desenho — é o passo seguinte, e é o único que prova que as regras certas disparam e não apenas que nada falha.
+
+**O que falta ao modelo:** os subprocessos condicionais de pessoa colectiva (titulares de participação e beneficiário efectivo) e de conta de menor, com as três decisões correspondentes. O percurso implementado é o da primeira fatia: pessoa singular, canal remoto, com todos os guardas regulatórios e os caminhos de recusa.

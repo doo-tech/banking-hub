@@ -19,6 +19,10 @@ deploy/.env
 *.env
 !deploy/env/*.env.example
 
+# Node — apenas tooling de validacao (ver package.json)
+node_modules/
+package-lock.json
+
 # IDE
 .idea/
 *.iml

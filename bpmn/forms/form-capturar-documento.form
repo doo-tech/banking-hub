@@ -1,0 +1,79 @@
+{
+  "components": [
+    {
+      "type": "text",
+      "text": "### Documento de identificacao\n\nCapture a frente e o verso do documento. Confirme que a fotografia, o nome completo, a data de nascimento e a nacionalidade estao legiveis.",
+      "id": "Txt_Doc",
+      "layout": {
+        "row": "row_1",
+        "columns": null
+      }
+    },
+    {
+      "type": "select",
+      "key": "tipoDocIdentificacao",
+      "label": "Documento apresentado",
+      "validate": {
+        "required": true
+      },
+      "values": [
+        {
+          "label": "Bilhete de identidade",
+          "value": "BILHETE_IDENTIDADE"
+        },
+        {
+          "label": "Cartao de residente",
+          "value": "CARTAO_RESIDENTE"
+        },
+        {
+          "label": "Passaporte",
+          "value": "PASSAPORTE"
+        },
+        {
+          "label": "Cedula pessoal (menor)",
+          "value": "CEDULA_PESSOAL"
+        }
+      ],
+      "id": "Sel_TipoDoc",
+      "layout": {
+        "row": "row_2",
+        "columns": null
+      }
+    },
+    {
+      "type": "checkbox",
+      "key": "capturaFrente",
+      "label": "Frente capturada",
+      "validate": {
+        "required": true
+      },
+      "id": "Chk_Frente",
+      "layout": {
+        "row": "row_3",
+        "columns": null
+      }
+    },
+    {
+      "type": "checkbox",
+      "key": "capturaVerso",
+      "label": "Verso capturado",
+      "validate": {
+        "required": true
+      },
+      "id": "Chk_Verso",
+      "layout": {
+        "row": "row_3",
+        "columns": null
+      }
+    }
+  ],
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Banking Hub",
+    "version": "0.1.0"
+  },
+  "schemaVersion": 18,
+  "id": "form-capturar-documento",
+  "type": "default"
+}

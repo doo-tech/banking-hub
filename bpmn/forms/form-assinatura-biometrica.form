@@ -1,0 +1,69 @@
+{
+  "components": [
+    {
+      "type": "text",
+      "text": "### Assinatura por meio biometrico\n\nO Artigo 4.o n.o 3 do Aviso n.o 1/23 determina o uso de meios biometricos para servir a funcao da assinatura sempre que o cliente nao saiba ou nao possa assinar. Este e um caminho previsto na norma, nao uma excepcao.",
+      "id": "Txt_Bio",
+      "layout": {
+        "row": "row_1",
+        "columns": null
+      }
+    },
+    {
+      "type": "select",
+      "key": "motivoAssinaturaBiometrica",
+      "label": "Motivo",
+      "validate": {
+        "required": true
+      },
+      "values": [
+        {
+          "label": "Nao sabe assinar",
+          "value": "NAO_SABE"
+        },
+        {
+          "label": "Nao pode assinar",
+          "value": "NAO_PODE"
+        }
+      ],
+      "id": "Sel_MotBio",
+      "layout": {
+        "row": "row_2",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "hashDocumento",
+      "label": "Impressao digital do documento a assinar",
+      "readonly": true,
+      "id": "Txt_HashBio",
+      "layout": {
+        "row": "row_3",
+        "columns": null
+      }
+    },
+    {
+      "type": "checkbox",
+      "key": "biometriaRecolhida",
+      "label": "Biometria recolhida",
+      "validate": {
+        "required": true
+      },
+      "id": "Chk_Bio",
+      "layout": {
+        "row": "row_4",
+        "columns": null
+      }
+    }
+  ],
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Banking Hub",
+    "version": "0.1.0"
+  },
+  "schemaVersion": 18,
+  "id": "form-assinatura-biometrica",
+  "type": "default"
+}

@@ -1,0 +1,81 @@
+{
+  "components": [
+    {
+      "type": "text",
+      "text": "### Revisao manual de identidade\n\nO Anexo I do Aviso n.o 1/23 determina que, havendo duvida sobre a verdadeira identidade que nao se resolva de forma satisfatoria, a instituicao deve recusar a realizacao de quaisquer operacoes.\n\nNao existe estado de espera indefinido.",
+      "id": "Txt_Rev",
+      "layout": {
+        "row": "row_1",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "pontuacaoCorrespondencia",
+      "label": "Pontuacao de correspondencia facial",
+      "readonly": true,
+      "id": "Txt_Score",
+      "layout": {
+        "row": "row_2",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "motivoEncaminhamento",
+      "label": "Motivo do encaminhamento",
+      "readonly": true,
+      "id": "Txt_Mot",
+      "layout": {
+        "row": "row_2",
+        "columns": null
+      }
+    },
+    {
+      "type": "radio",
+      "key": "duvidaPersisteRadio",
+      "label": "A duvida sobre a identidade persiste?",
+      "validate": {
+        "required": true
+      },
+      "values": [
+        {
+          "label": "Nao — identidade comprovada",
+          "value": "NAO"
+        },
+        {
+          "label": "Sim — recusar o pedido",
+          "value": "SIM"
+        }
+      ],
+      "id": "Rad_Duvida",
+      "layout": {
+        "row": "row_3",
+        "columns": null
+      }
+    },
+    {
+      "type": "textarea",
+      "key": "fundamentoRevisaoIdentidade",
+      "label": "Fundamento da decisao",
+      "validate": {
+        "required": true,
+        "minLength": 20
+      },
+      "id": "Txa_Fund",
+      "layout": {
+        "row": "row_4",
+        "columns": null
+      }
+    }
+  ],
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Banking Hub",
+    "version": "0.1.0"
+  },
+  "schemaVersion": 18,
+  "id": "form-revisao-identidade",
+  "type": "default"
+}

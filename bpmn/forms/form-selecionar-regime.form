@@ -1,0 +1,71 @@
+{
+  "components": [
+    {
+      "type": "select",
+      "key": "regimeTitularidade",
+      "label": "Regime de titularidade",
+      "validate": {
+        "required": true
+      },
+      "values": [
+        {
+          "label": "Singular — um unico titular",
+          "value": "SINGULAR"
+        },
+        {
+          "label": "Colectiva solidaria — qualquer titular movimenta",
+          "value": "COLECTIVA_SOLIDARIA"
+        },
+        {
+          "label": "Colectiva conjunta — exige assinatura de todos",
+          "value": "COLECTIVA_CONJUNTA"
+        },
+        {
+          "label": "Colectiva mista",
+          "value": "COLECTIVA_MISTA"
+        }
+      ],
+      "id": "Sel_Regime",
+      "layout": {
+        "row": "row_1",
+        "columns": null
+      }
+    },
+    {
+      "type": "select",
+      "key": "canalExtracto",
+      "label": "Canal de recepcao do extracto",
+      "validate": {
+        "required": true
+      },
+      "values": [
+        {
+          "label": "Aplicacao movel",
+          "value": "APP"
+        },
+        {
+          "label": "Correio electronico",
+          "value": "EMAIL"
+        },
+        {
+          "label": "Balcao",
+          "value": "BALCAO"
+        }
+      ],
+      "id": "Sel_Extracto",
+      "layout": {
+        "row": "row_2",
+        "columns": null
+      }
+    }
+  ],
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Banking Hub",
+    "version": "0.1.0"
+  },
+  "schemaVersion": 18,
+  "id": "form-selecionar-regime",
+  "type": "default"
+}

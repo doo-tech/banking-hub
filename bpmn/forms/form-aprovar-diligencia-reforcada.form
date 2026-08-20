@@ -1,0 +1,93 @@
+{
+  "components": [
+    {
+      "type": "text",
+      "text": "### Diligencia reforcada\n\nA Lei n.o 5/20 exige decisao de nivel hierarquico superior. A aprovacao e responsabilidade pessoal e nao e automatizavel.",
+      "id": "Txt_Edd",
+      "layout": {
+        "row": "row_1",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "nivelRisco",
+      "label": "Nivel de risco atribuido",
+      "readonly": true,
+      "id": "Txt_Risco",
+      "layout": {
+        "row": "row_2",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "categoriaPep",
+      "label": "Categoria PEP",
+      "readonly": true,
+      "id": "Txt_CatPep",
+      "layout": {
+        "row": "row_2",
+        "columns": null
+      }
+    },
+    {
+      "type": "textarea",
+      "key": "factoresRisco",
+      "label": "Factores que contribuiram para a pontuacao",
+      "readonly": true,
+      "id": "Txa_Factores",
+      "layout": {
+        "row": "row_3",
+        "columns": null
+      }
+    },
+    {
+      "type": "radio",
+      "key": "decisaoEdd",
+      "label": "Decisao",
+      "validate": {
+        "required": true
+      },
+      "values": [
+        {
+          "label": "Aprovar o estabelecimento da relacao de negocio",
+          "value": "APROVADA"
+        },
+        {
+          "label": "Recusar",
+          "value": "RECUSADA"
+        }
+      ],
+      "id": "Rad_Edd",
+      "layout": {
+        "row": "row_4",
+        "columns": null
+      }
+    },
+    {
+      "type": "textarea",
+      "key": "fundamentoEdd",
+      "label": "Fundamento da decisao",
+      "validate": {
+        "required": true,
+        "minLength": 30
+      },
+      "description": "Obrigatorio. Fica registado com o seu nome e a data.",
+      "id": "Txa_FundEdd",
+      "layout": {
+        "row": "row_5",
+        "columns": null
+      }
+    }
+  ],
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Banking Hub",
+    "version": "0.1.0"
+  },
+  "schemaVersion": 18,
+  "id": "form-aprovar-diligencia-reforcada",
+  "type": "default"
+}

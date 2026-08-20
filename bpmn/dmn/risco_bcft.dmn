@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" id="Definitions_risco_bcft" name="Risco de branqueamento de capitais e financiamento do terrorismo" namespace="http://camunda.org/schema/1.0/dmn">
+  <!--
+    Avaliacao de risco de BC/FT/FPADM, nos termos da Lei n.o 5/20 e do Aviso
+    n.o 14/20, invocada a partir do processo de abertura de conta.
+
+    Duas decisoes ligadas:
+      pontuacao_risco  — soma as contribuicoes de cada factor (COLLECT/SUM)
+      risco_bcft       — traduz a pontuacao em nivel e devolve os dois valores
+
+    Os pesos sao parametrizaveis por instituicao. Os limiares que NAO sao
+    parametrizaveis estao nas regras marcadas como imposicao legal.
+
+    PEP e correspondencia em lista de sancoes contribuem 100 pontos cada, o que
+    garante nivel ALTO por si so — cumprindo BR-PEP-03 sem depender da
+    calibracao dos restantes pesos.
+
+    Requisitos: REG-KYC-05, REG-KYC-08. Regras: BR-RSK-01, BR-RSK-04, BR-PEP-03.
+  -->
+  <decision id="pontuacao_risco" name="Pontuacao de risco">
+    <decisionTable id="dt_pontuacao" hitPolicy="COLLECT" aggregation="SUM">
+      <input id="in_pep" label="Alguma parte qualificada como PEP">
+        <inputExpression id="ie_pep" typeRef="string">
+          <text>if triagensPep = null then "NAO_PEP" else if some t in triagensPep satisfies t.estado != "NAO_PEP" then "PEP" else "NAO_PEP"</text>
+        </inputExpression>
+      </input>
+      <input id="in_sancoes" label="Correspondencia em lista de sancoes">
+        <inputExpression id="ie_sancoes" typeRef="boolean">
+          <text>if rastreioSancoes = null then false else rastreioSancoes.correspondencia</text>
+        </inputExpression>
+      </input>
+      <input id="in_perfil" label="Perfil de cliente">
+        <inputExpression id="ie_perfil" typeRef="string">
+          <text>perfilCliente</text>
+        </inputExpression>
+      </input>
+      <input id="in_residencia" label="Residencia">
+        <inputExpression id="ie_residencia" typeRef="string">
+          <text>residenciaFiscal</text>
+        </inputExpression>
+      </input>
+      <input id="in_rendimento" label="Montante mensal do rendimento declarado">
+        <inputExpression id="ie_rendimento" typeRef="number">
+          <text>if montanteRendimento = null then 0 else montanteRendimento</text>
+        </inputExpression>
+      </input>
+      <input id="in_canal" label="Canal de origem">
+        <inputExpression id="ie_canal" typeRef="string">
+          <text>canalOrigem</text>
+        </inputExpression>
+      </input>
+      <output id="out_pontos" name="pontos" label="Contribuicao" typeRef="number" />
+      <rule id="rp_pep">
+        <description>Imposicao legal: qualquer parte PEP implica diligencia reforcada (Lei n.o 5/20). Peso nao parametrizavel.</description>
+        <inputEntry id="iep1"><text>"PEP"</text></inputEntry>
+        <inputEntry id="iep2"><text>-</text></inputEntry>
+        <inputEntry id="iep3"><text>-</text></inputEntry>
+        <inputEntry id="iep4"><text>-</text></inputEntry>
+        <inputEntry id="iep5"><text>-</text></inputEntry>
+        <inputEntry id="iep6"><text>-</text></inputEntry>
+        <outputEntry id="oep1"><text>100</text></outputEntry>
+      </rule>
+      <rule id="rp_sancoes">
+        <description>Imposicao legal: correspondencia em lista de sancoes implica risco elevado. Peso nao parametrizavel.</description>
+        <inputEntry id="ies1"><text>-</text></inputEntry>
+        <inputEntry id="ies2"><text>true</text></inputEntry>
+        <inputEntry id="ies3"><text>-</text></inputEntry>
+        <inputEntry id="ies4"><text>-</text></inputEntry>
+        <inputEntry id="ies5"><text>-</text></inputEntry>
+        <inputEntry id="ies6"><text>-</text></inputEntry>
+        <outputEntry id="oes1"><text>100</text></outputEntry>
+      </rule>
+      <rule id="rp_osfl">
+        <description>Organizacao sem fins lucrativos e instituicao de caridade: risco base nao inferior a MEDIO (BR-RSK-04)</description>
+        <inputEntry id="ieo1"><text>-</text></inputEntry>
+        <inputEntry id="ieo2"><text>-</text></inputEntry>
+        <inputEntry id="ieo3"><text>"ORGANIZACAO_SEM_FINS_LUCRATIVOS", "INSTITUICAO_CARIDADE_SEM_PERSONALIDADE"</text></inputEntry>
+        <inputEntry id="ieo4"><text>-</text></inputEntry>
+        <inputEntry id="ieo5"><text>-</text></inputEntry>
+        <inputEntry id="ieo6"><text>-</text></inputEntry>
+        <outputEntry id="ooo1"><text>25</text></outputEntry>
+      </rule>
+      <rule id="rp_colectiva">
+        <description>Pessoa colectiva: estrutura de controlo acrescenta risco</description>
+        <inputEntry id="iec1"><text>-</text></inputEntry>
+        <inputEntry id="iec2"><text>-</text></inputEntry>
+        <inputEntry id="iec3"><text>"PESSOA_COLECTIVA", "CONDOMINIO_PATRIMONIO_AUTONOMO"</text></inputEntry>
+        <inputEntry id="iec4"><text>-</text></inputEntry>
+        <inputEntry id="iec5"><text>-</text></inputEntry>
+        <inputEntry id="iec6"><text>-</text></inputEntry>
+        <outputEntry id="ooc1"><text>10</text></outputEntry>
+      </rule>
+      <rule id="rp_nao_residente">
+        <description>Nao residente: parametrizavel</description>
+        <inputEntry id="ien1"><text>-</text></inputEntry>
+        <inputEntry id="ien2"><text>-</text></inputEntry>
+        <inputEntry id="ien3"><text>-</text></inputEntry>
+        <inputEntry id="ien4"><text>"NAO_RESIDENTE"</text></inputEntry>
+        <inputEntry id="ien5"><text>-</text></inputEntry>
+        <inputEntry id="ien6"><text>-</text></inputEntry>
+        <outputEntry id="oon1"><text>15</text></outputEntry>
+      </rule>
+      <rule id="rp_rendimento_elevado">
+        <description>Rendimento declarado elevado: parametrizavel</description>
+        <inputEntry id="ier1"><text>-</text></inputEntry>
+        <inputEntry id="ier2"><text>-</text></inputEntry>
+        <inputEntry id="ier3"><text>-</text></inputEntry>
+        <inputEntry id="ier4"><text>-</text></inputEntry>
+        <inputEntry id="ier5"><text>&gt;= 10000000</text></inputEntry>
+        <inputEntry id="ier6"><text>-</text></inputEntry>
+        <outputEntry id="oor1"><text>15</text></outputEntry>
+      </rule>
+      <rule id="rp_rendimento_nao_declarado">
+        <description>Rendimento nao declarado ou nulo: impede a caracterizacao do cliente</description>
+        <inputEntry id="ied1"><text>-</text></inputEntry>
+        <inputEntry id="ied2"><text>-</text></inputEntry>
+        <inputEntry id="ied3"><text>-</text></inputEntry>
+        <inputEntry id="ied4"><text>-</text></inputEntry>
+        <inputEntry id="ied5"><text>&lt;= 0</text></inputEntry>
+        <inputEntry id="ied6"><text>-</text></inputEntry>
+        <outputEntry id="ood1"><text>20</text></outputEntry>
+      </rule>
+      <rule id="rp_terceiro">
+        <description>Pedido intermediado por entidade terceira mandatada — Art. 3.o n.o 6</description>
+        <inputEntry id="iet1"><text>-</text></inputEntry>
+        <inputEntry id="iet2"><text>-</text></inputEntry>
+        <inputEntry id="iet3"><text>-</text></inputEntry>
+        <inputEntry id="iet4"><text>-</text></inputEntry>
+        <inputEntry id="iet5"><text>-</text></inputEntry>
+        <inputEntry id="iet6"><text>"TERCEIRO_MANDATADO"</text></inputEntry>
+        <outputEntry id="oot1"><text>10</text></outputEntry>
+      </rule>
+      <rule id="rp_base">
+        <description>Contribuicao base, para que nenhuma avaliacao devolva lista vazia</description>
+        <inputEntry id="ieb1"><text>-</text></inputEntry>
+        <inputEntry id="ieb2"><text>-</text></inputEntry>
+        <inputEntry id="ieb3"><text>-</text></inputEntry>
+        <inputEntry id="ieb4"><text>-</text></inputEntry>
+        <inputEntry id="ieb5"><text>-</text></inputEntry>
+        <inputEntry id="ieb6"><text>-</text></inputEntry>
+        <outputEntry id="oob1"><text>5</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <decision id="risco_bcft" name="Nivel de risco de BC/FT/FPADM">
+    <variable id="var_risco" name="risco_bcft" typeRef="context" />
+    <informationRequirement id="ir_pontuacao">
+      <requiredDecision href="#pontuacao_risco" />
+    </informationRequirement>
+    <literalExpression id="le_risco">
+      <text>{
+  pontuacao: pontuacao_risco,
+  nivel: if pontuacao_risco &gt;= 60 then "ALTO" else if pontuacao_risco &gt;= 25 then "MEDIO" else "BAIXO"
+}</text>
+    </literalExpression>
+  </decision>
+</definitions>

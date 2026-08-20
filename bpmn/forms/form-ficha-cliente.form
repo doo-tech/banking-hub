@@ -1,0 +1,250 @@
+{
+  "components": [
+    {
+      "type": "text",
+      "text": "### Ficha de Cliente\n\nCampos minimos exigidos pelo Anexo I do Aviso n.o 1/23. Os dados lidos do seu documento estao pre-preenchidos — confirme ou corrija.",
+      "id": "Txt_Ficha",
+      "layout": {
+        "row": "row_1",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "nomeCompleto",
+      "label": "Nome completo",
+      "validate": {
+        "required": true,
+        "minLength": 3,
+        "maxLength": 150
+      },
+      "id": "Txt_Nome",
+      "layout": {
+        "row": "row_2",
+        "columns": null
+      }
+    },
+    {
+      "type": "datetime",
+      "key": "dataNascimento",
+      "label": "Data de nascimento",
+      "validate": {
+        "required": true
+      },
+      "subtype": "date",
+      "dateLabel": "Data de nascimento",
+      "id": "Dt_Nasc",
+      "layout": {
+        "row": "row_3",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "naturalidade",
+      "label": "Naturalidade",
+      "validate": {
+        "required": true
+      },
+      "id": "Txt_Natural",
+      "layout": {
+        "row": "row_3",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "moradaHabitual",
+      "label": "Morada completa da residencia habitual",
+      "validate": {
+        "required": true
+      },
+      "id": "Txt_Morada",
+      "layout": {
+        "row": "row_4",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "pontoReferencia",
+      "label": "Ponto de referencia",
+      "validate": {
+        "required": true
+      },
+      "description": "Campo distinto e obrigatorio, exigido pelo Anexo I",
+      "id": "Txt_PontoRef",
+      "layout": {
+        "row": "row_5",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "moradaAlternativa",
+      "label": "Morada completa da residencia alternativa",
+      "id": "Txt_MoradaAlt",
+      "layout": {
+        "row": "row_6",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "pontoReferenciaAlternativa",
+      "label": "Ponto de referencia da residencia alternativa",
+      "id": "Txt_PontoRefAlt",
+      "layout": {
+        "row": "row_6",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "profissao",
+      "label": "Profissao ou ocupacao",
+      "validate": {
+        "required": true
+      },
+      "id": "Txt_Prof",
+      "layout": {
+        "row": "row_7",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "entidadePatronal",
+      "label": "Entidade patronal, se aplicavel",
+      "id": "Txt_Patronal",
+      "layout": {
+        "row": "row_7",
+        "columns": null
+      }
+    },
+    {
+      "type": "select",
+      "key": "naturezaRendimento",
+      "label": "Natureza do rendimento",
+      "validate": {
+        "required": true
+      },
+      "values": [
+        {
+          "label": "Salario",
+          "value": "SALARIO"
+        },
+        {
+          "label": "Rendimento empresarial",
+          "value": "EMPRESARIAL"
+        },
+        {
+          "label": "Pensao",
+          "value": "PENSAO"
+        },
+        {
+          "label": "Rendas",
+          "value": "RENDAS"
+        },
+        {
+          "label": "Remessas",
+          "value": "REMESSAS"
+        },
+        {
+          "label": "Outro",
+          "value": "OUTRO"
+        }
+      ],
+      "id": "Sel_NatRend",
+      "layout": {
+        "row": "row_8",
+        "columns": null
+      }
+    },
+    {
+      "type": "number",
+      "key": "montanteRendimento",
+      "label": "Montante mensal do rendimento (AOA)",
+      "validate": {
+        "required": true,
+        "min": 0
+      },
+      "id": "Num_Rend",
+      "layout": {
+        "row": "row_8",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "nif",
+      "label": "Numero de Identificacao Fiscal (NIF)",
+      "validate": {
+        "required": true
+      },
+      "id": "Txt_Nif",
+      "layout": {
+        "row": "row_9",
+        "columns": null
+      }
+    },
+    {
+      "type": "text",
+      "text": "#### Pessoa Politicamente Exposta\n\nDesempenha, ou desempenhou, funcoes publicas proeminentes em Angola, noutro pais ou em organizacao internacional? A pergunta abrange tambem familiares proximos e relacoes societarias ou comerciais reconhecidas.",
+      "id": "Txt_Pep",
+      "layout": {
+        "row": "row_10",
+        "columns": null
+      }
+    },
+    {
+      "type": "radio",
+      "key": "declaracaoPep",
+      "label": "Enquadra-se como Pessoa Politicamente Exposta?",
+      "validate": {
+        "required": true
+      },
+      "values": [
+        {
+          "label": "Nao",
+          "value": "NAO_PEP"
+        },
+        {
+          "label": "Sim, ocupo ou ocupei um cargo publico relevante",
+          "value": "PEP"
+        },
+        {
+          "label": "Sim, por relacao familiar ou societaria com quem ocupa",
+          "value": "PEP_RELACIONADO"
+        }
+      ],
+      "id": "Rad_Pep",
+      "layout": {
+        "row": "row_11",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "cargoPep",
+      "label": "Cargo ou relacao",
+      "conditional": {
+        "hide": "=declaracaoPep = \"NAO_PEP\""
+      },
+      "id": "Txt_CargoPep",
+      "layout": {
+        "row": "row_12",
+        "columns": null
+      }
+    }
+  ],
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Banking Hub",
+    "version": "0.1.0"
+  },
+  "schemaVersion": 18,
+  "id": "form-ficha-cliente",
+  "type": "default"
+}

@@ -1,0 +1,43 @@
+{
+  "components": [
+    {
+      "type": "text",
+      "text": "### Documentos a submeter\n\nA lista abaixo foi determinada pelo seu perfil, residencia e canal. Sao os documentos minimos exigidos pelo Anexo I do Aviso n.o 1/23.",
+      "id": "Txt_Docs",
+      "layout": {
+        "row": "row_1",
+        "columns": null
+      }
+    },
+    {
+      "type": "checklist",
+      "key": "documentosSubmetidos",
+      "label": "Documentos submetidos",
+      "valuesExpression": "=checklist.requisitos",
+      "id": "Chl_Docs",
+      "layout": {
+        "row": "row_2",
+        "columns": null
+      }
+    },
+    {
+      "type": "textarea",
+      "key": "observacoesCliente",
+      "label": "Observacoes",
+      "id": "Txa_Obs",
+      "layout": {
+        "row": "row_3",
+        "columns": null
+      }
+    }
+  ],
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Banking Hub",
+    "version": "0.1.0"
+  },
+  "schemaVersion": 18,
+  "id": "form-submeter-documentos",
+  "type": "default"
+}

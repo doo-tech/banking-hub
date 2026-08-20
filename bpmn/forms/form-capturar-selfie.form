@@ -1,0 +1,48 @@
+{
+  "components": [
+    {
+      "type": "text",
+      "text": "### Verificacao de identidade\n\nOlhe para a camara e siga as instrucoes no ecra. A verificacao confirma que e uma pessoa presente, e nao uma fotografia.",
+      "id": "Txt_Selfie",
+      "layout": {
+        "row": "row_1",
+        "columns": null
+      }
+    },
+    {
+      "type": "checkbox",
+      "key": "capturaFacial",
+      "label": "Captura facial concluida",
+      "validate": {
+        "required": true
+      },
+      "id": "Chk_Face",
+      "layout": {
+        "row": "row_2",
+        "columns": null
+      }
+    },
+    {
+      "type": "checkbox",
+      "key": "provaVidaConcluida",
+      "label": "Prova de vida concluida",
+      "validate": {
+        "required": true
+      },
+      "id": "Chk_Vida",
+      "layout": {
+        "row": "row_2",
+        "columns": null
+      }
+    }
+  ],
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Banking Hub",
+    "version": "0.1.0"
+  },
+  "schemaVersion": 18,
+  "id": "form-capturar-selfie",
+  "type": "default"
+}

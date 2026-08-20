@@ -1,0 +1,111 @@
+{
+  "components": [
+    {
+      "type": "text",
+      "text": "### Origem dos fundos\n\nA entrega inicial teve origem numa conta titulada por outra pessoa. O Aviso n.o 1/23 exige, nestes casos, uma justificacao credivel.",
+      "id": "Txt_Just",
+      "layout": {
+        "row": "row_1",
+        "columns": null
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "nomeOrdenante",
+      "label": "Titular da conta de origem",
+      "readonly": true,
+      "id": "Txt_Ord",
+      "layout": {
+        "row": "row_2",
+        "columns": null
+      }
+    },
+    {
+      "type": "number",
+      "key": "montanteRecebido",
+      "label": "Montante recebido",
+      "readonly": true,
+      "id": "Num_Mont",
+      "layout": {
+        "row": "row_2",
+        "columns": null
+      }
+    },
+    {
+      "type": "select",
+      "key": "relacaoComOrdenante",
+      "label": "Relacao com o titular da conta de origem",
+      "validate": {
+        "required": true
+      },
+      "values": [
+        {
+          "label": "Conjuge ou uniao de facto",
+          "value": "CONJUGE"
+        },
+        {
+          "label": "Ascendente ou descendente",
+          "value": "PARENTESCO_DIRECTO"
+        },
+        {
+          "label": "Outro familiar",
+          "value": "OUTRO_FAMILIAR"
+        },
+        {
+          "label": "Relacao comercial",
+          "value": "COMERCIAL"
+        },
+        {
+          "label": "Empregador",
+          "value": "EMPREGADOR"
+        },
+        {
+          "label": "Sem relacao",
+          "value": "SEM_RELACAO"
+        }
+      ],
+      "id": "Sel_Rel",
+      "layout": {
+        "row": "row_3",
+        "columns": null
+      }
+    },
+    {
+      "type": "textarea",
+      "key": "justificacaoCredivel",
+      "label": "Justificacao",
+      "validate": {
+        "required": true,
+        "minLength": 30
+      },
+      "description": "Explique a razao pela qual os fundos tem origem numa conta de terceiro.",
+      "id": "Txa_Just",
+      "layout": {
+        "row": "row_4",
+        "columns": null
+      }
+    },
+    {
+      "type": "checkbox",
+      "key": "documentoJustificacaoAnexado",
+      "label": "Documento comprovativo anexado",
+      "validate": {
+        "required": true
+      },
+      "id": "Chk_DocJust",
+      "layout": {
+        "row": "row_5",
+        "columns": null
+      }
+    }
+  ],
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Banking Hub",
+    "version": "0.1.0"
+  },
+  "schemaVersion": 18,
+  "id": "form-recolher-justificacao",
+  "type": "default"
+}

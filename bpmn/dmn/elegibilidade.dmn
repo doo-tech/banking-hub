@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" id="Definitions_elegibilidade" name="Elegibilidade para abertura de conta" namespace="http://camunda.org/schema/1.0/dmn">
+  <!--
+    Aviso n.o 1/23 do BNA:
+      Art. 3.o n.o 1 — pessoas singulares e colectivas, residentes e nao
+        residentes, podem ser titulares de contas em moeda nacional e/ou
+        estrangeira. A residencia e a moeda NAO condicionam a elegibilidade.
+      Art. 3.o n.o 2 — menores podem ser titulares de contas de deposito,
+        abertas pelos seus representantes legais.
+      Anexo I — os perfis de cliente com exigencias informativas proprias.
+
+    Politica FIRST: as regras estao ordenadas, a primeira que corresponder
+    decide. A ultima e apanha-tudo, para que nao exista entrada sem decisao.
+    Requisitos: REG-ABR-01, REG-ABR-02. Regras: BR-ELE-01, BR-ELE-02.
+  -->
+  <decision id="elegibilidade" name="Elegibilidade para abertura de conta">
+    <decisionTable id="dt_elegibilidade" hitPolicy="FIRST">
+      <input id="in_tipoPessoa" label="Tipo de titular declarado">
+        <inputExpression id="ie_tipoPessoa" typeRef="string">
+          <text>tipoPessoa</text>
+        </inputExpression>
+      </input>
+      <input id="in_idade" label="Idade em anos completos">
+        <inputExpression id="ie_idade" typeRef="number">
+          <text>idade</text>
+        </inputExpression>
+      </input>
+      <output id="out_elegivel" name="elegivel" label="Elegivel" typeRef="boolean" />
+      <output id="out_perfil" name="perfilCliente" label="Perfil de cliente" typeRef="string" />
+      <output id="out_motivo" name="motivoRecusa" label="Motivo da recusa" typeRef="string" />
+      <rule id="r_menor_ok">
+        <description>Menor com representante legal — Art. 3.o n.o 2</description>
+        <inputEntry id="ie_r1_1"><text>"MENOR"</text></inputEntry>
+        <inputEntry id="ie_r1_2"><text>&lt; 18</text></inputEntry>
+        <outputEntry id="oe_r1_1"><text>true</text></outputEntry>
+        <outputEntry id="oe_r1_2"><text>"MENOR"</text></outputEntry>
+        <outputEntry id="oe_r1_3"><text>null</text></outputEntry>
+      </rule>
+      <rule id="r_menor_maior_idade">
+        <description>Declarado menor mas tem 18 anos ou mais — perfil incorrecto</description>
+        <inputEntry id="ie_r2_1"><text>"MENOR"</text></inputEntry>
+        <inputEntry id="ie_r2_2"><text>&gt;= 18</text></inputEntry>
+        <outputEntry id="oe_r2_1"><text>false</text></outputEntry>
+        <outputEntry id="oe_r2_2"><text>null</text></outputEntry>
+        <outputEntry id="oe_r2_3"><text>"O titular tem 18 anos ou mais e nao pode ser aberto como conta de menor."</text></outputEntry>
+      </rule>
+      <rule id="r_singular_menor">
+        <description>Pessoa singular com menos de 18 anos deve seguir o percurso de menor</description>
+        <inputEntry id="ie_r3_1"><text>"PESSOA_SINGULAR", "COMERCIANTE_NOME_INDIVIDUAL"</text></inputEntry>
+        <inputEntry id="ie_r3_2"><text>&lt; 18</text></inputEntry>
+        <outputEntry id="oe_r3_1"><text>false</text></outputEntry>
+        <outputEntry id="oe_r3_2"><text>null</text></outputEntry>
+        <outputEntry id="oe_r3_3"><text>"O titular tem menos de 18 anos. A conta deve ser aberta por representante legal, ao abrigo do Artigo 3.o n.o 2."</text></outputEntry>
+      </rule>
+      <rule id="r_singular">
+        <description>Pessoa singular maior de idade</description>
+        <inputEntry id="ie_r4_1"><text>"PESSOA_SINGULAR"</text></inputEntry>
+        <inputEntry id="ie_r4_2"><text>&gt;= 18</text></inputEntry>
+        <outputEntry id="oe_r4_1"><text>true</text></outputEntry>
+        <outputEntry id="oe_r4_2"><text>"PESSOA_SINGULAR"</text></outputEntry>
+        <outputEntry id="oe_r4_3"><text>null</text></outputEntry>
+      </rule>
+      <rule id="r_cni">
+        <description>Comerciante em nome individual — Anexo I, I.1.1</description>
+        <inputEntry id="ie_r5_1"><text>"COMERCIANTE_NOME_INDIVIDUAL"</text></inputEntry>
+        <inputEntry id="ie_r5_2"><text>&gt;= 18</text></inputEntry>
+        <outputEntry id="oe_r5_1"><text>true</text></outputEntry>
+        <outputEntry id="oe_r5_2"><text>"COMERCIANTE_NOME_INDIVIDUAL"</text></outputEntry>
+        <outputEntry id="oe_r5_3"><text>null</text></outputEntry>
+      </rule>
+      <rule id="r_colectiva">
+        <description>Pessoa colectiva — Anexo I, I.2. A idade nao se aplica.</description>
+        <inputEntry id="ie_r6_1"><text>"PESSOA_COLECTIVA"</text></inputEntry>
+        <inputEntry id="ie_r6_2"><text>-</text></inputEntry>
+        <outputEntry id="oe_r6_1"><text>true</text></outputEntry>
+        <outputEntry id="oe_r6_2"><text>"PESSOA_COLECTIVA"</text></outputEntry>
+        <outputEntry id="oe_r6_3"><text>null</text></outputEntry>
+      </rule>
+      <rule id="r_osfl">
+        <description>Organizacao sem fins lucrativos — Anexo I, I.2.1</description>
+        <inputEntry id="ie_r7_1"><text>"ORGANIZACAO_SEM_FINS_LUCRATIVOS"</text></inputEntry>
+        <inputEntry id="ie_r7_2"><text>-</text></inputEntry>
+        <outputEntry id="oe_r7_1"><text>true</text></outputEntry>
+        <outputEntry id="oe_r7_2"><text>"ORGANIZACAO_SEM_FINS_LUCRATIVOS"</text></outputEntry>
+        <outputEntry id="oe_r7_3"><text>null</text></outputEntry>
+      </rule>
+      <rule id="r_caridade">
+        <description>Instituicao de caridade sem personalidade juridica, orgao de igreja ou local de culto — Anexo I, I.3</description>
+        <inputEntry id="ie_r8_1"><text>"INSTITUICAO_CARIDADE_SEM_PERSONALIDADE"</text></inputEntry>
+        <inputEntry id="ie_r8_2"><text>-</text></inputEntry>
+        <outputEntry id="oe_r8_1"><text>true</text></outputEntry>
+        <outputEntry id="oe_r8_2"><text>"INSTITUICAO_CARIDADE_SEM_PERSONALIDADE"</text></outputEntry>
+        <outputEntry id="oe_r8_3"><text>null</text></outputEntry>
+      </rule>
+      <rule id="r_condominio">
+        <description>Condominio ou patrimonio autonomo — o Anexo I, I.2 aplica-se-lhes expressamente</description>
+        <inputEntry id="ie_r9_1"><text>"CONDOMINIO_PATRIMONIO_AUTONOMO"</text></inputEntry>
+        <inputEntry id="ie_r9_2"><text>-</text></inputEntry>
+        <outputEntry id="oe_r9_1"><text>true</text></outputEntry>
+        <outputEntry id="oe_r9_2"><text>"CONDOMINIO_PATRIMONIO_AUTONOMO"</text></outputEntry>
+        <outputEntry id="oe_r9_3"><text>null</text></outputEntry>
+      </rule>
+      <rule id="r_apanha_tudo">
+        <description>Apanha-tudo: tipo de titular nao previsto. Nenhuma entrada fica sem decisao.</description>
+        <inputEntry id="ie_r10_1"><text>-</text></inputEntry>
+        <inputEntry id="ie_r10_2"><text>-</text></inputEntry>
+        <outputEntry id="oe_r10_1"><text>false</text></outputEntry>
+        <outputEntry id="oe_r10_2"><text>null</text></outputEntry>
+        <outputEntry id="oe_r10_3"><text>"Tipo de titular nao previsto no Anexo I do Aviso n.o 1/23."</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

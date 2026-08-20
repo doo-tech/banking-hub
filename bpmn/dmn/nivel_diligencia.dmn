@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" id="Definitions_nivel_diligencia" name="Nivel de diligencia" namespace="http://camunda.org/schema/1.0/dmn">
+  <!--
+    Determina o nivel de diligencia e a aprovacao exigida, nos termos da
+    Lei n.o 5/20.
+
+    Politica FIRST, com as regras ordenadas da mais restritiva para a menos.
+    Nota: o Camunda 8 NAO suporta as politicas PRIORITY nem OUTPUT ORDER; FIRST
+    com ordenacao explicita e o equivalente executavel.
+
+    A condicao PEP aparece como regra propria, e nao apenas embutida na
+    pontuacao de risco, para que quem revê a tabela veja a exigencia da lei sem
+    ter de inferir a calibracao dos pesos.
+
+    Requisitos: REG-KYC-08. Regras: BR-PEP-03, BR-PEP-04, BR-RSK-03.
+  -->
+  <decision id="nivel_diligencia" name="Nivel de diligencia e aprovacao exigida">
+    <decisionTable id="dt_diligencia" hitPolicy="FIRST">
+      <input id="ind_pep" label="Alguma parte qualificada como PEP">
+        <inputExpression id="ied_pep" typeRef="string">
+          <text>if triagensPep = null then "NAO_PEP" else if some t in triagensPep satisfies t.estado != "NAO_PEP" then "PEP" else "NAO_PEP"</text>
+        </inputExpression>
+      </input>
+      <input id="ind_nivel" label="Nivel de risco apurado">
+        <inputExpression id="ied_nivel" typeRef="string">
+          <text>risco.nivel</text>
+        </inputExpression>
+      </input>
+      <output id="outd_nivel" name="nivel" label="Nivel de diligencia" typeRef="string" />
+      <output id="outd_aprovacao" name="aprovacaoExigida" label="Aprovacao exigida" typeRef="string" />
+      <output id="outd_fundamento" name="fundamento" label="Fundamento" typeRef="string" />
+      <rule id="rd_pep">
+        <description>Imposicao legal: parte qualificada como PEP implica diligencia reforcada e decisao de nivel hierarquico superior</description>
+        <inputEntry id="ird1_1"><text>"PEP"</text></inputEntry>
+        <inputEntry id="ird1_2"><text>-</text></inputEntry>
+        <outputEntry id="ord1_1"><text>"REFORCADA"</text></outputEntry>
+        <outputEntry id="ord1_2"><text>"CHEFE_COMPLIANCE"</text></outputEntry>
+        <outputEntry id="ord1_3"><text>"Pessoa Politicamente Exposta — Lei n.o 5/20, art. 3.o n.o 31."</text></outputEntry>
+      </rule>
+      <rule id="rd_alto">
+        <description>Risco elevado implica diligencia reforcada</description>
+        <inputEntry id="ird2_1"><text>-</text></inputEntry>
+        <inputEntry id="ird2_2"><text>"ALTO"</text></inputEntry>
+        <outputEntry id="ord2_1"><text>"REFORCADA"</text></outputEntry>
+        <outputEntry id="ord2_2"><text>"CHEFE_COMPLIANCE"</text></outputEntry>
+        <outputEntry id="ord2_3"><text>"Pontuacao de risco em nivel elevado."</text></outputEntry>
+      </rule>
+      <rule id="rd_medio">
+        <description>Risco medio: diligencia normal</description>
+        <inputEntry id="ird3_1"><text>-</text></inputEntry>
+        <inputEntry id="ird3_2"><text>"MEDIO"</text></inputEntry>
+        <outputEntry id="ord3_1"><text>"NORMAL"</text></outputEntry>
+        <outputEntry id="ord3_2"><text>null</text></outputEntry>
+        <outputEntry id="ord3_3"><text>"Pontuacao de risco em nivel medio."</text></outputEntry>
+      </rule>
+      <rule id="rd_baixo">
+        <description>Risco baixo: diligencia simplificada. Reduz a profundidade da verificacao e NUNCA dispensa os campos minimos do Anexo I (BR-RSK-03).</description>
+        <inputEntry id="ird4_1"><text>-</text></inputEntry>
+        <inputEntry id="ird4_2"><text>"BAIXO"</text></inputEntry>
+        <outputEntry id="ord4_1"><text>"SIMPLIFICADA"</text></outputEntry>
+        <outputEntry id="ord4_2"><text>null</text></outputEntry>
+        <outputEntry id="ord4_3"><text>"Pontuacao de risco em nivel baixo."</text></outputEntry>
+      </rule>
+      <rule id="rd_apanha_tudo">
+        <description>Apanha-tudo prudente: nivel de risco nao determinado trata-se como normal, nunca como simplificada</description>
+        <inputEntry id="ird5_1"><text>-</text></inputEntry>
+        <inputEntry id="ird5_2"><text>-</text></inputEntry>
+        <outputEntry id="ord5_1"><text>"NORMAL"</text></outputEntry>
+        <outputEntry id="ord5_2"><text>null</text></outputEntry>
+        <outputEntry id="ord5_3"><text>"Nivel de risco nao determinado. Aplica-se diligencia normal por prudencia."</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>
