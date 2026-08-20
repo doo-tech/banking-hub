@@ -1,0 +1,149 @@
+# Banking Hub — ambiente local completo.
+#
+# Restricao C5 do Termo de Abertura: toda a plataforma empacotada em contentores,
+# sem nenhuma dependencia de instalacao manual em maquina.
+#
+#   docker compose up -d
+#   docker compose --profile observabilidade up -d   (inclui rastreio e metricas)
+#
+# Portas: 8080 app · 8088 Operate · 8082 Tasklist · 5432 PostgreSQL · 9000 objectos
+#
+# NOTA: as etiquetas de imagem abaixo sao o ponto de partida da Fase 0 e devem ser
+# fixadas em versoes concretas (nunca "latest") antes do arranque da Fase 2.
+
+name: banking-hub
+
+services:
+
+  # ------------------------------------------------------------------
+  # Persistencia — um esquema por modulo (ver mapa de modulos)
+  # ------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: bh-postgres
+    environment:
+      POSTGRES_DB: bankinghub
+      POSTGRES_USER: bankinghub
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bankinghub}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init/postgres-esquemas.sql:/docker-entrypoint-initdb.d/10-esquemas.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bankinghub -d bankinghub"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ------------------------------------------------------------------
+  # Armazenamento de objectos com bloqueio de retencao — ADR-0006
+  # Sustenta REG-RET-01 (10 anos) e REG-RET-03 (processo tecnologico)
+  # ------------------------------------------------------------------
+  objectstore:
+    image: minio/minio:latest
+    container_name: bh-objectstore
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${OBJECTSTORE_USER:-bankinghub}
+      MINIO_ROOT_PASSWORD: ${OBJECTSTORE_PASSWORD:-bankinghub}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - objectstore-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Cria o balde do arquivo com bloqueio de objectos activo (WORM).
+  # O bloqueio TEM de ser activado na criacao do balde — nao e activavel depois.
+  objectstore-init:
+    image: minio/mc:latest
+    container_name: bh-objectstore-init
+    depends_on:
+      objectstore:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://objectstore:9000 $${OBJECTSTORE_USER} $${OBJECTSTORE_PASSWORD} &&
+      mc mb --with-lock --ignore-existing local/bh-dossies &&
+      mc retention set --default COMPLIANCE 3650d local/bh-dossies &&
+      echo 'Balde bh-dossies criado com retencao COMPLIANCE de 3650 dias (10 anos).'
+      "
+    environment:
+      OBJECTSTORE_USER: ${OBJECTSTORE_USER:-bankinghub}
+      OBJECTSTORE_PASSWORD: ${OBJECTSTORE_PASSWORD:-bankinghub}
+
+  # ------------------------------------------------------------------
+  # Autenticacao — OIDC
+  # ------------------------------------------------------------------
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: bh-keycloak
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_PASSWORD:-admin}
+      KC_HEALTH_ENABLED: "true"
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./init/keycloak:/opt/keycloak/data/import:ro
+
+  # ------------------------------------------------------------------
+  # Orquestracao — Camunda 8 (ADR-0001)
+  # Em Fase 0 usa-se a distribuicao unica de desenvolvimento.
+  # A topologia de producao e definida na Fase 3.
+  # ------------------------------------------------------------------
+  camunda:
+    image: camunda/camunda:8.8.0
+    container_name: bh-camunda
+    environment:
+      CAMUNDA_SECURITY_AUTHENTICATION_UNPROTECTEDAPI: "true"
+      SPRING_PROFILES_ACTIVE: consolidated-auth
+    ports:
+      - "26500:26500"   # Zeebe gateway (gRPC)
+      - "8088:8080"     # Operate / Tasklist / API REST
+    volumes:
+      - camunda-data:/usr/local/camunda/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+
+  # ------------------------------------------------------------------
+  # Aplicacao — monolito modular (ADR-0002)
+  # ------------------------------------------------------------------
+  banking-hub:
+    build:
+      context: ../backend
+      dockerfile: ../deploy/Dockerfile.backend
+    container_name: bh-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      camunda:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: ${PERFIL:-local}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bankinghub
+      SPRING_DATASOURCE_USERNAME: bankinghub
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-bankinghub}
+      CAMUNDA_CLIENT_MODE: self-managed
+      CAMUNDA_CLIENT_GRPCADDRESS: http://camunda:26500
+      CAMUNDA_CLIENT_RESTADDRESS: http://camunda:8080
+      BH_ARQUIVO_ENDPOINT: http://objectstore:9000
+      BH_ARQUIVO_BALDE: bh-dossies
+      BH_ARQUIVO_RETENCAO_ANOS: "10"
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUERURI: http://keycloak:8080/realms/banking-hub
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres-data:
+  objectstore-data:
+  camunda-data:

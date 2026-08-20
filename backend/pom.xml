@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>ao.bankinghub</groupId>
+  <artifactId>banking-hub-parent</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>Banking Hub :: Parent</name>
+  <description>
+    Plataforma de Onboarding Bancario para Angola — Aviso n.o 1/23 do BNA.
+    Ver docs/03-arquitectura/03-mapa-de-modulos.md para o mapa de modulos
+    e a matriz de dependencias permitidas.
+  </description>
+
+  <modules>
+    <!-- Infra-estrutura de construcao -->
+    <module>bh-bom</module>
+    <module>bh-common</module>
+    <module>bh-tenant</module>
+
+    <!-- Modulos de dominio — nenhum depende de outro modulo de dominio -->
+    <module>bh-customer</module>
+    <module>bh-document</module>
+    <module>bh-kyc</module>
+    <module>bh-contract</module>
+    <module>bh-funding</module>
+    <module>bh-account</module>
+
+    <!-- Modulos de suporte -->
+    <module>bh-archive</module>
+    <module>bh-audit</module>
+    <module>bh-notification</module>
+
+    <!-- Orquestracao e borda -->
+    <module>bh-orchestration</module>
+    <module>bh-onboarding-bff</module>
+
+    <!-- Composicao executavel -->
+    <module>bh-app</module>
+  </modules>
+
+  <properties>
+    <java.version>21</java.version>
+    <maven.compiler.release>21</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>ao.bankinghub</groupId>
+        <artifactId>bh-bom</artifactId>
+        <version>${project.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <configuration>
+            <parameters>true</parameters>
+            <compilerArgs>
+              <arg>-Xlint:all</arg>
+            </compilerArgs>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <executions>
+            <execution>
+              <goals>
+                <goal>integration-test</goal>
+                <goal>verify</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+</project>
