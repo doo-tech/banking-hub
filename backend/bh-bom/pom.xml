@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>ao.bankinghub</groupId>
+    <artifactId>banking-hub-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>bh-bom</artifactId>
+  <packaging>pom</packaging>
+  <name>Banking Hub :: BOM</name>
+  <description>
+    Gestao centralizada de versoes. Nenhum modulo declara versao de dependencia
+    fora deste ficheiro.
+
+    ATENCAO: as versoes abaixo sao o ponto de partida da Fase 0 e devem ser
+    confirmadas contra a documentacao oficial antes do arranque da Fase 2,
+    em particular a linha Camunda 8 (o artefacto do starter e as versoes
+    suportadas de Spring Boot mudaram entre 8.7, 8.8 e 8.9).
+  </description>
+
+  <properties>
+    <!-- Plataforma -->
+    <spring-boot.version>3.5.0</spring-boot.version>
+    <camunda.version>8.8.0</camunda.version>
+
+    <!-- Persistencia -->
+    <flyway.version>11.1.0</flyway.version>
+    <postgresql.version>42.7.4</postgresql.version>
+
+    <!-- Mensageria -->
+    <spring-kafka.version>3.3.0</spring-kafka.version>
+
+    <!-- Armazenamento de objectos (WORM) — ver ADR-0006 -->
+    <aws-sdk.version>2.29.0</aws-sdk.version>
+
+    <!-- Observabilidade -->
+    <opentelemetry.version>1.45.0</opentelemetry.version>
+
+    <!-- Documentacao de API -->
+    <springdoc.version>2.7.0</springdoc.version>
+
+    <!-- Testes -->
+    <testcontainers.version>1.20.4</testcontainers.version>
+    <archunit.version>1.3.0</archunit.version>
+    <assertj.version>3.26.3</assertj.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring-boot.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers-bom</artifactId>
+        <version>${testcontainers.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>bom</artifactId>
+        <version>${aws-sdk.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>io.opentelemetry</groupId>
+        <artifactId>opentelemetry-bom</artifactId>
+        <version>${opentelemetry.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <!-- Camunda 8 — confirmar artefacto e versao contra a documentacao oficial -->
+      <dependency>
+        <groupId>io.camunda</groupId>
+        <artifactId>camunda-spring-boot-starter</artifactId>
+        <version>${camunda.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.camunda</groupId>
+        <artifactId>camunda-process-test-spring</artifactId>
+        <version>${camunda.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        <version>${springdoc.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.tngtech.archunit</groupId>
+        <artifactId>archunit-junit5</artifactId>
+        <version>${archunit.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <!-- Modulos internos -->
+      <dependency><groupId>ao.bankinghub</groupId><artifactId>bh-common</artifactId><version>${project.version}</version></dependency>
+      <dependency><groupId>ao.bankinghub</groupId><artifactId>bh-tenant</artifactId><version>${project.version}</version></dependency>
+      <dependency><groupId>ao.bankinghub</groupId><artifactId>bh-customer</artifactId><version>${project.version}</version></dependency>
+      <dependency><groupId>ao.bankinghub</groupId><artifactId>bh-document</artifactId><version>${project.version}</version></dependency>
+      <dependency><groupId>ao.bankinghub</groupId><artifactId>bh-kyc</artifactId><version>${project.version}</version></dependency>
+      <dependency><groupId>ao.bankinghub</groupId><artifactId>bh-contract</artifactId><version>${project.version}</version></dependency>
+      <dependency><groupId>ao.bankinghub</groupId><artifactId>bh-funding</artifactId><version>${project.version}</version></dependency>
+      <dependency><groupId>ao.bankinghub</groupId><artifactId>bh-account</artifactId><version>${project.version}</version></dependency>
+      <dependency><groupId>ao.bankinghub</groupId><artifactId>bh-archive</artifactId><version>${project.version}</version></dependency>
+      <dependency><groupId>ao.bankinghub</groupId><artifactId>bh-audit</artifactId><version>${project.version}</version></dependency>
+      <dependency><groupId>ao.bankinghub</groupId><artifactId>bh-notification</artifactId><version>${project.version}</version></dependency>
+      <dependency><groupId>ao.bankinghub</groupId><artifactId>bh-orchestration</artifactId><version>${project.version}</version></dependency>
+      <dependency><groupId>ao.bankinghub</groupId><artifactId>bh-onboarding-bff</artifactId><version>${project.version}</version></dependency>
+    </dependencies>
+  </dependencyManagement>
+</project>
